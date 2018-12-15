@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="Cinetube">
+    <output-path>$PROJECT_DIR$/out/artifacts/Cinetube</output-path>
+    <root id="archive" name="Cinetube.war">
+      <element id="artifact" artifact-name="CineTube:war exploded" />
+    </root>
+  </artifact>
+</component>
