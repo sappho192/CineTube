@@ -80,7 +80,6 @@ namespace Cinetube.Controllers
                             session.SetString("ID", ID);
                             session.SetString("Loggedin", "true");
                             session.SetString("SessionID", Guid.NewGuid().ToString());
-                            //GlobalVariables.Loggedin = true;
                         }
                     }
                 }
