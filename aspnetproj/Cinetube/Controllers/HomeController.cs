@@ -65,15 +65,15 @@ namespace Cinetube.Controllers
 
             using (var connection = new SqlConnection("server = sappho192.iptime.org;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
             {
-                var command = new SqlCommand("DECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nSET @ID = (select 1 from 사용자 where ID IN (\'admin\'))\r\nSET @PW = (select 1 from 사용자 where ID = \'admin\' and PW = \'root\')\r\n\r\nselect @ID as id, @PW as pw", connection);
+                var command = new SqlCommand($"DECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nSET @ID = (select 1 from 사용자 where ID IN (\'{ID}\'))\r\nSET @PW = (select 1 from 사용자 where ID = \'{ID}\' and PW = \'{PW}\')\r\n\r\nselect @ID as id, @PW as pw", connection);
                 connection.Open();
                 Console.WriteLine($"ID: {ID}, PW: {PW}");
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        var id = Convert.ToInt32(reader[0]);
-                        var pw = Convert.ToInt32(reader[1]);
+                        int id = reader[0] is DBNull ? 0: Convert.ToInt32(reader[0]);
+                        int pw = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]); ;
                         Console.WriteLine($"ID correct: {id}, PW correct: {pw}");
                         if (id == 1 && pw == 1)
                         {
