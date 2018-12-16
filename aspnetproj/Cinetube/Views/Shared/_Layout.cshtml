@@ -65,6 +65,9 @@
                         {
                             @*<li><a> 로그인 안했음 </a></li>*@
                             <li><a href="#" class="btn" data-toggle="modal" data-target="#loginModal" data-backdrop="false">로그인</a></li>
+                            @*<li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>*@
+                            @*<li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>*@
+                            <li><a href="#" class="btn" data-toggle="modal" data-target="#signUpModal" data-backdrop="false">회원가입</a></li>
                             <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModal" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -91,14 +94,75 @@
                                     </div>
                                 </div>
                             </div>
-                            @*<li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>*@
-                            <li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>
+                            <div class="modal" id="signUpModal" tabindex="-1" role="dialog" aria-labelledby="signUpModal" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form asp-controller="Home" asp-action="SignUp" method="post">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                <h4 class="modal-title" id="myModalLabel">회원 가입</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!--SignUp(string ID, string PW, string name, string birth, string ssn, string phone, string PWHint, string PWans)-->
+                                                <div class="form-group">
+                                                    <input class="form-control" type="text" placeholder="아이디"
+                                                           name="ID" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <input class="form-control" type="password" placeholder="비밀번호"
+                                                           name="PW" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="sel1">비밀번호 힌트</label>
+                                                    <select onchange="selectHintNo.call(this,event)" class="form-control" id="sel1">
+
+                                                        @{for (var index = 0; index < GlobalVariables.PwHintList.Count; index++)
+                                                            {
+                                                                string hint = GlobalVariables.PwHintList[index];
+                                                                <option value="@index">@hint</option>
+                                                            }}
+                                                        <input class="hidden" type="hidden" id="PWHint" name="PWHintNo" />
+                                                    </select>
+                                                    <div class="form-group">
+                                                        <input class="form-control" type="text" placeholder="비밀번호 힌트 답변"
+                                                               name="PWAns" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input class="form-control" type="text" placeholder="이름"
+                                                               name="name" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input class="form-control" type="date" placeholder="생년월일"
+                                                               name="birth" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input class="form-control" type="number" placeholder="주민등록번호(뒷자리)"
+                                                               name="ssn" maxlength="7" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input class="form-control" type="text" placeholder="휴대폰 번호"
+                                                               name="phone" maxlength="11" />
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary">회원 가입</button>
+                                                </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     }
                 </ulk>
             </div>
         </div>
     </nav>
+
+    <script type="text/javascript">
+        function selectHintNo(event) {
+            document.getElementById('PWHint').value = this.selectedIndex;
+        }
+    </script>
     <partial name="_CookieConsentPartial" />
 
     <div class="container body-content">
