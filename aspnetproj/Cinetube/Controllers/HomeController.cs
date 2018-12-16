@@ -34,13 +34,6 @@ namespace Cinetube.Controllers
             return View();
         }
 
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
         public IActionResult Privacy()
         {
             return View();
@@ -119,6 +112,21 @@ namespace Cinetube.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult MyPage()
+        {
+            return View();
+        }
+
+        public IActionResult MyMovies()
+        {
+            return View();
+        }
+
+        public IActionResult Charge()
+        {
+            return View();
         }
     }
 }
