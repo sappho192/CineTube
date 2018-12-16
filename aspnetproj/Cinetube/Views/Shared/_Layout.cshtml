@@ -64,7 +64,34 @@
                         else
                         {
                             @*<li><a> 로그인 안했음 </a></li>*@
-                            <li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>
+                            <li><a href="#" class="btn" data-toggle="modal" data-target="#loginModal" data-backdrop="false">로그인</a></li>
+                            <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModal" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form asp-controller="Home" asp-action="Authenticate" method="post">
+
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                <h4 class="modal-title" id="myModalLabel">로그인</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <input class="form-control" type="text" placeholder="아이디"
+                                                           name="ID" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <input class="form-control" type="password" placeholder="비밀번호"
+                                                           name="PW" />
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-primary">로그인</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>*@
                             <li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>
                         }
                     }
@@ -72,7 +99,6 @@
             </div>
         </div>
     </nav>
-
     <partial name="_CookieConsentPartial" />
 
     <div class="container body-content">
