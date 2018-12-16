@@ -16,6 +16,14 @@
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
 </head>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    bool login = GlobalVariables.Loggedin;
+    ISession session = HttpContextAccessor.HttpContext.Session;
+    IEnumerable<String> Keys = session.Keys;
+    String myID = string.Empty;
+}
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
@@ -29,11 +37,38 @@
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Cinetube</a>
             </div>
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
+                <ulk class="nav navbar-nav">
+                    <li><a asp-area="" asp-controller="Home" asp-action="AllMovies">영화 찾기</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                </ul>
+                    @{
+                        bool loggedin = false;
+
+                        if (Keys.Contains("ID"))
+                        {
+                            foreach (String key in Keys)
+                            {
+                                if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                                {
+                                    loggedin = true;
+                                    myID = session.GetString("ID");
+                                }
+                            }
+                        }
+                        if (loggedin)
+                        {
+                            <li><a asp-area="" asp-controller="Home" asp-action="MyPage">내 정보(@myID)</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="MyMovies">내 영화</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Charge">충전</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Logout">로그아웃</a></li>
+                        }
+                        else
+                        {
+                            @*<li><a> 로그인 안했음 </a></li>*@
+                            <li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>
+                        }
+                    }
+                </ulk>
             </div>
         </div>
     </nav>

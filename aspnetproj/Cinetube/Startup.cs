@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Cinetube
 {
@@ -30,8 +31,15 @@ namespace Cinetube
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            //services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpContextAccessor();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.MaxValue;
+                options.Cookie.HttpOnly = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +53,8 @@ namespace Cinetube
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            app.UseSession();
 
             app.UseStaticFiles();
             app.UseCookiePolicy();
