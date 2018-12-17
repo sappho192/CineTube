@@ -66,7 +66,7 @@ namespace Cinetube.Controllers
                 {
                     while (reader.Read())
                     {
-                        int id = reader[0] is DBNull ? 0: Convert.ToInt32(reader[0]);
+                        int id = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
                         int pw = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]); ;
                         Console.WriteLine($"ID correct: {id}, PW correct: {pw}");
                         if (id == 1 && pw == 1)
@@ -110,7 +110,7 @@ namespace Cinetube.Controllers
                 connection.Open();
                 var result = command.ExecuteNonQuery();
                 Console.WriteLine($"ID: {ID}, PW: {PW}, name: {name}, birth: {birth}, 주민번호: {ssn}, phone: {phone}, PWHintNo: {PWHintNo}, PWAns: {PWAns}");
-                Console.WriteLine($"Insert result: {(result == 2 ? "SUCCESS": "FAILED")}");
+                Console.WriteLine($"Insert result: {(result == 2 ? "SUCCESS" : "FAILED")}");
             }
 
             return RedirectToAction("Index", "Home");
@@ -126,9 +126,51 @@ namespace Cinetube.Controllers
             return View();
         }
 
-        public IActionResult Charge()
+        public IActionResult Charge(string result = null)
         {
+            if (result != null)
+            {
+                Console.WriteLine($"충전 결과: {result}");
+                if (result.Equals("SUCCESS"))
+                {
+                    ViewData["Result"] = true;
+                }
+                else
+                {
+                    ViewData["Result"] = false;
+                }
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+
             return View();
+        }
+
+        public IActionResult doCharge(int price)
+        {
+            string ID = String.Empty;
+            foreach (String key in session.Keys)
+            {
+                if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                {
+                    ID = session.GetString("ID");
+                }
+            }
+
+            using (var connection =
+                new SqlConnection(
+                    "server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            {
+                string commandStr =
+                    $"DECLARE @USER INT = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nDECLARE @NUM INT\r\nDECLARE @PRICE INT = {price}\r\nSET @NUM = (SELECT COUNT(*) FROM 충전내역 WHERE 사용자번호=@USER)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(충전번호) FROM 충전내역 WHERE 사용자번호=@USER) + 1\r\n\r\nINSERT INTO 충전내역 VALUES(@USER, @NUM, @PRICE, GETDATE())\r\n\r\nUPDATE 회원\r\nSET 보유금액 += @PRICE\r\nWHERE 사용자번호 = @USER";
+                Console.WriteLine(commandStr);
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                var result = command.ExecuteNonQuery();
+                return RedirectToAction("Charge", "Home", new {result = "SUCCESS"});
+            }
         }
     }
 }

@@ -1,3 +1,30 @@
 ﻿<div>
     충전 페이지
 </div>
+@{
+    if (ViewData["Result"] != null)
+    {
+        if (ViewData["Result"].Equals(true))
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>충전 성공!</strong>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>충전 실패</strong>
+            </div>
+        }
+    }
+}
+
+<form asp-controller="Home" asp-action="doCharge" method="post">
+    <div class="input-group">
+        <span class="input-group-addon">₩</span>
+        <input type="text" class="form-control" name="price" aria-label="Amount" placeholder="0">
+        <button type="submit" class="btn btn-primary">충전</button>
+    </div>
+</form>
