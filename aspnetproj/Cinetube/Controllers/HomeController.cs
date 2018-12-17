@@ -1,9 +1,8 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Cinetube.Models;
 using Microsoft.AspNetCore.Http;
@@ -18,25 +17,81 @@ namespace Cinetube.Controllers
         public HomeController(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
-            this.session = httpContextAccessor.HttpContext.Session;
+            session = httpContextAccessor.HttpContext.Session;
         }
 
         public IActionResult Index()
         {
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                int index = 0;
+                string commandRecentPageStr =
+                    $"SELECT TOP 5 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
+
+                var commandRecentPage = new SqlCommand(commandRecentPageStr, connection);
+                connection.Open();
+                using (var reader = commandRecentPage.ExecuteReader())
+                {
+                    List<MovieInfo> recentMoviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+                        recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+                    }
+
+                    ViewData["RecentMoviesInfo"] = recentMoviesInfo;
+                }
+            }
+
             return View();
         }
 
         public IActionResult AllMovies()
         {
-            ViewData["Message"] = "영화 목록";
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                int index = 0;
+                string commandGeneralPageStr =
+                    $"SELECT TOP 10 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
 
-            return View();
-        }
+                var commandGeneralPage = new SqlCommand(commandGeneralPageStr, connection);
+                connection.Open();
+                using (var reader = commandGeneralPage.ExecuteReader())
+                {
+                    List<MovieInfo> moviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호= reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+                    }
 
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
+                    ViewData["MoviesInfo"] = moviesInfo;
+                }
+            }
 
+            ViewData["Title"] = "영화 찾기";
             return View();
         }
 
@@ -65,27 +120,22 @@ namespace Cinetube.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
-                string myquery = "DECLARE @INPUT_ID VARCHAR(20)='" + temp_ID + "'\r\nDECLARE @INPUT_PW VARCHAR(20)='" + temp_PW +
-                    "'\r\nDECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nDECLARE @UNUM INT = 0\r\nDECLARE @USERNO INT = 0\r\nSET @ID = (select 1 from 사용자 where ID IN(@INPUT_ID))" +
-                    "\r\nIF @ID = 1\r\nSET @UNUM = (select 1 from 사용자, 관리자 where ID = @INPUT_ID and 사용자.사용자번호 = 관리자.사용자번호) " +
-                    "\r\nIF @UNUM = 1\r\nSET @ID = 2\r\nIF @ID > 0\r\nSET @PW = (select 1 from 사용자 where ID = @INPUT_ID and PW = @INPUT_PW) " +
-                    "\r\nSET @USERNO = (select 사용자번호 from 사용자 where ID = @INPUT_ID and PW = @INPUT_PW) " +
-                    "\r\nselect @ID as id, @PW as pw, @USERNO as userno";
-                var command = new SqlCommand(myquery, connection);
+                var command = new SqlCommand($"DECLARE @INPUT_ID VARCHAR(20) = \'{ID}\'\r\nDECLARE @INPUT_PW VARCHAR(20) = \'{PW}\'\r\nDECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nDECLARE @UNUM INT = 0\r\nDECLARE @USERNO INT = 0\r\n\r\nSET @ID = (select 1 from 사용자 where ID IN (@INPUT_ID))\r\nIF @ID=1\r\n   SET @UNUM = (select 1 from 사용자, 관리자 where ID=@INPUT_ID and 사용자.사용자번호=관리자.사용자번호)\r\nIF @UNUM=1\r\n   SET @ID=2\r\nIF @ID>0\r\n   SET @PW = (select 1 from 사용자 where ID=@INPUT_ID and PW=@INPUT_PW)\r\nSET @USERNO = (select 사용자번호 from 사용자 where ID=@INPUT_ID and PW=@INPUT_PW)\r\n\r\nselect @ID as id, @PW as pw, @USERNO as userno", connection);
                 connection.Open();
+                Console.WriteLine($"ID: {ID}, PW: {PW}");
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        var id = Convert.ToInt32(reader[0]);
-                        var pw = Convert.ToInt32(reader[1]);
-                        var userno = Convert.ToString(reader[2]);
+                        int id = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        int pw = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        int userno = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
 
                         if (id >= 1 && pw == 1)
                         {
-                            session.SetString("userNo", userno);
+                            session.SetString("userNo", userno.ToString());
                             session.SetString("ID", ID);
                             session.SetString("Loggedin", "true");
                             session.SetString("SessionID", Guid.NewGuid().ToString());
@@ -245,6 +295,186 @@ namespace Cinetube.Controllers
             }
             
             return RedirectToAction("Article", "Home", new { id = articleNo });
+        }
+
+        public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns)
+        {
+            if (ID == null || PW == null || name == null || birth == null || ssn == null || phone == null || PWAns == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (GlobalVariables.PhoneRegex.Match(phone).Success)
+            {
+                // 010 3942 3438
+                phone = phone.Insert(7, "-").Insert(3, "-");
+            }
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @NUM INT \r\nSET @NUM = (SELECT COUNT(*) FROM 사용자) \r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(사용자번호) FROM 사용자) + 1 \r\nELSE SET @NUM = 1\r\nINSERT INTO 사용자 VALUES(@NUM,\'{ID}\',\'{PW}\',\'{name}\',\'{birth}\',{ssn},\'{phone}\');\r\nINSERT INTO 회원 VALUES(@NUM,0,{PWHintNo},\'{PWAns}\');";
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                var result = command.ExecuteNonQuery();
+                Console.WriteLine($"ID: {ID}, PW: {PW}, name: {name}, birth: {birth}, 주민번호: {ssn}, phone: {phone}, PWHintNo: {PWHintNo}, PWAns: {PWAns}");
+                Console.WriteLine($"Insert result: {(result == 2 ? "SUCCESS" : "FAILED")}");
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult MyPage()
+        {
+            var ID = getCurrentID();
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string 회원정보 =
+                    $"SELECT ID ,이름, 생년월일,핸드폰번호, 보유금액\r\n  FROM 사용자\r\n  INNER JOIN 회원 ON 사용자.사용자번호 = 회원.사용자번호 WHERE ID=\'{ID}\'";
+                string 구매내역 =
+                    $"DECLARE @MOVIENUM INT\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,영화.영화번호,구매번호 ,구매시각 ,만료일자 FROM 구매내역\r\n  INNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호 WHERE 구매내역.사용자번호 = @USERNUM";
+                string 충전내역 = $"SELECT 충전금액, 충전시각 FROM 충전내역\r\n  WHERE 사용자번호 = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')";
+                var commandUserInfo = new SqlCommand(회원정보, connection);
+                var commandPurchased = new SqlCommand(구매내역, connection);
+                var commandCharged = new SqlCommand(충전내역, connection);
+                connection.Open();
+                using (var reader = commandUserInfo.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        // ID, 이름, 생년월일, 폰번호, 잔액
+                        string userID = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        string 이름 = reader[1] is DBNull ? String.Empty : Convert.ToString(reader[1]);
+                        string 생년월일 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[2]);
+                        string 폰번호 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        int 잔액 = reader[4] is DBNull ? 0 : Convert.ToInt32(reader[4]);
+                        ViewData["UserInfo"] = new UserInfo(userID, 이름, 생년월일, 폰번호, 잔액);
+                        Console.WriteLine($"ID: {userID}, 이름: {이름}, 생년월일: {생년월일}, 폰번호: {폰번호}");
+                    }
+                }
+
+                // 영화번호, 구매번호, 구매시각, 만료일자
+                List<PurchaseHistory> purchaseHistories = new List<PurchaseHistory>();
+                using (var reader = commandPurchased.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string 영화제목 = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        int 영화번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        int 구매번호 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 구매시각 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 만료일자 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        purchaseHistories.Add(new PurchaseHistory(영화제목, 영화번호, 구매번호, 구매시각, 만료일자));
+                        Console.WriteLine($"영화제목: {영화제목}, 영화번호: {영화번호}, 구매번호: {구매번호}, 구매시각: {구매시각}, 만료일자: {만료일자}");
+                    }
+                }
+
+                List<ChargeHistory> chargeHistories = new List<ChargeHistory>();
+                using (var reader = commandCharged.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int 금액 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 충전시각 = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        chargeHistories.Add(new ChargeHistory(금액, 충전시각));
+                        Console.WriteLine($"충전 금액: {금액}, 충전시각: {충전시각}");
+                    }
+                }
+
+                ViewData["PurchaseHistories"] = purchaseHistories;
+                ViewData["ChargeHistories"] = chargeHistories;
+            }
+
+            ViewData["Title"] = "내 정보";
+            return View();
+        }
+
+        private string getCurrentID()
+        {
+            string ID = String.Empty;
+            foreach (String key in session.Keys)
+            {
+                if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                {
+                    ID = session.GetString("ID");
+                }
+            }
+
+            return ID;
+        }
+
+        public IActionResult MyMovies()
+        {
+            string ID = getCurrentID();
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,구매번호,구매시각,만료일자 FROM 구매내역\r\nINNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    List<AvailableMovie> availableMovies = new List<AvailableMovie>();
+                    while (reader.Read())
+                    {
+                        // 제목,구매번호,구매시각,만료일자
+                        string 제목 = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        int 구매번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        string 구매시각 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[2]);
+                        string 만료일자 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        availableMovies.Add(new AvailableMovie(제목, 구매번호, 구매시각, 만료일자));
+                        Console.WriteLine($"제목: {제목}, 구매번호: {구매번호}, 구매시각: {구매시각}, 만료일자: {만료일자}");
+                    }
+
+                    ViewData["AvailableMovies"] = availableMovies;
+                }
+            }
+
+            ViewData["Title"] = "내 영화";
+            return View();
+        }
+
+        public IActionResult Charge(string result = null)
+        {
+            if (result != null)
+            {
+                Console.WriteLine($"충전 결과: {result}");
+                if (result.Equals("SUCCESS"))
+                {
+                    ViewData["Result"] = true;
+                }
+                else
+                {
+                    ViewData["Result"] = false;
+                }
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+
+            ViewData["Title"] = "충전";
+            return View();
+        }
+
+        public IActionResult doCharge(int price)
+        {
+            string ID = getCurrentID();
+
+            using (var connection =
+                new SqlConnection(
+                    GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @USER INT = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nDECLARE @NUM INT\r\nDECLARE @PRICE INT = {price}\r\nSET @NUM = (SELECT COUNT(*) FROM 충전내역 WHERE 사용자번호=@USER)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(충전번호) FROM 충전내역 WHERE 사용자번호=@USER) + 1\r\nELSE @NUM = 1\r\n\r\nINSERT INTO 충전내역 VALUES(@USER, @NUM, @PRICE, GETDATE())\r\n\r\nUPDATE 회원\r\nSET 보유금액 += @PRICE\r\nWHERE 사용자번호 = @USER";
+                Console.WriteLine(commandStr);
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                var result = command.ExecuteNonQuery();
+                return RedirectToAction("Charge", "Home", new { result = "SUCCESS" });
+            }
         }
     }
 }
