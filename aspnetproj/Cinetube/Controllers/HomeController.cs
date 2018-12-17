@@ -103,7 +103,7 @@ namespace Cinetube.Controllers
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"DECLARE @NUM INT SET @NUM = (SELECT COUNT(*) FROM 사용자) IF (@NUM != 0) SET @NUM = (SELECT MAX(사용자번호) FROM 사용자) + 1 INSERT INTO 사용자 VALUES(@NUM,\'{ID}\',\'{PW}\',\'{name}\',\'{birth}\',{ssn},\'{phone}\');\r\nINSERT INTO 회원 VALUES(@NUM,0,{PWHintNo},\'{PWAns}\');";
+                    $"DECLARE @NUM INT \r\nSET @NUM = (SELECT COUNT(*) FROM 사용자) \r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(사용자번호) FROM 사용자) + 1 \r\nELSE SET @NUM = 1\r\nINSERT INTO 사용자 VALUES(@NUM,\'{ID}\',\'{PW}\',\'{name}\',\'{birth}\',{ssn},\'{phone}\');\r\nINSERT INTO 회원 VALUES(@NUM,0,{PWHintNo},\'{PWAns}\');";
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
                 var result = command.ExecuteNonQuery();
@@ -258,7 +258,7 @@ namespace Cinetube.Controllers
                     GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"DECLARE @USER INT = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nDECLARE @NUM INT\r\nDECLARE @PRICE INT = {price}\r\nSET @NUM = (SELECT COUNT(*) FROM 충전내역 WHERE 사용자번호=@USER)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(충전번호) FROM 충전내역 WHERE 사용자번호=@USER) + 1\r\n\r\nINSERT INTO 충전내역 VALUES(@USER, @NUM, @PRICE, GETDATE())\r\n\r\nUPDATE 회원\r\nSET 보유금액 += @PRICE\r\nWHERE 사용자번호 = @USER";
+                    $"DECLARE @USER INT = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nDECLARE @NUM INT\r\nDECLARE @PRICE INT = {price}\r\nSET @NUM = (SELECT COUNT(*) FROM 충전내역 WHERE 사용자번호=@USER)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(충전번호) FROM 충전내역 WHERE 사용자번호=@USER) + 1\r\nELSE @NUM = 1\r\n\r\nINSERT INTO 충전내역 VALUES(@USER, @NUM, @PRICE, GETDATE())\r\n\r\nUPDATE 회원\r\nSET 보유금액 += @PRICE\r\nWHERE 사용자번호 = @USER";
                 Console.WriteLine(commandStr);
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
