@@ -123,7 +123,7 @@ namespace Cinetube.Controllers
                 string 회원정보 =
                     $"SELECT ID ,이름, 생년월일,핸드폰번호, 보유금액\r\n  FROM 사용자\r\n  INNER JOIN 회원 ON 사용자.사용자번호 = 회원.사용자번호 WHERE ID=\'{ID}\'";
                 string 구매내역 =
-                    $"DECLARE @MOVIENUM INT\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,영화.영화번호,구매번호 ,구매시각 ,만료일자 FROM 구매내역\r\n  INNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호";
+                    $"DECLARE @MOVIENUM INT\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,영화.영화번호,구매번호 ,구매시각 ,만료일자 FROM 구매내역\r\n  INNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호 WHERE 구매내역.사용자번호 = @USERNUM";
                 string 충전내역 = $"SELECT 충전금액, 충전시각 FROM 충전내역\r\n  WHERE 사용자번호 = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')";
                 var commandUserInfo = new SqlCommand(회원정보, connection);
                 var commandPurchased = new SqlCommand(구매내역, connection);
