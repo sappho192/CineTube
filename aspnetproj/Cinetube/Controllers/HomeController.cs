@@ -105,10 +105,12 @@ namespace Cinetube.Controllers
             using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
             {
                 string commandStr =
-                    $"DECLARE @NUM INT\r\nSET @NUM = (SELECT COUNT(*) FROM 사용자)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(사용자번호) FROM 사용자) + 1\r\n\r\nINSERT INTO 사용자 VALUES(\r\n@NUM,\r\n\'{ID}\',\r\n\'{PW}\',\r\n\'{name}\',\r\n\'{birth}\',\r\n{ssn},\r\n\'{phone}\'\r\n);\r\n\r\nINSERT INTO 회원 VALUES(\r\n@NUM,\r\n0,\r\n{PWHintNo},\r\n\'{PWAns}\'\r\n);";
+                    $"DECLARE @NUM INT SET @NUM = (SELECT COUNT(*) FROM 사용자) IF (@NUM != 0) SET @NUM = (SELECT MAX(사용자번호) FROM 사용자) + 1 INSERT INTO 사용자 VALUES(@NUM,\'{ID}\',\'{PW}\',\'{name}\',\'{birth}\',{ssn},\'{phone}\');\r\nINSERT INTO 회원 VALUES(@NUM,0,{PWHintNo},\'{PWAns}\');";
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
+                var result = command.ExecuteNonQuery();
                 Console.WriteLine($"ID: {ID}, PW: {PW}, name: {name}, birth: {birth}, 주민번호: {ssn}, phone: {phone}, PWHintNo: {PWHintNo}, PWAns: {PWAns}");
+                Console.WriteLine($"Insert result: {(result == 2 ? "SUCCESS": "FAILED")}");
             }
 
             return RedirectToAction("Index", "Home");
