@@ -1,3 +1,63 @@
-﻿<div>
-    내 정보 출력하는곳
+﻿@{
+    List<PurchaseHistory> purchaseHistories = ViewData["PurchaseHistories"] as List<PurchaseHistory>;
+    List<ChargeHistory> chargeHistories = ViewData["ChargeHistories"] as List<ChargeHistory>;
+    UserInfo userInfo = ViewData["UserInfo"] as UserInfo;
+    System.Diagnostics.Debug.Assert(userInfo != null, nameof(userInfo) + " != null");
+}
+<h2>@ViewData["Title"]</h2>
+@{
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">개인 정보</h3>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item">ID: @userInfo.ID</li>
+            <li class="list-group-item">이름: @userInfo.이름</li>
+            <li class="list-group-item">생년월일: @userInfo.생년월일</li>
+            <li class="list-group-item">폰번호: @userInfo.핸드폰번호</li>
+            <li class="list-group-item">보유 금액: @userInfo.보유금액₩</li>
+        </ul>
+    </div>
+}
+
+<div class="list-group">
+    <h3 class="h3">구매 내역</h3>
+    @{
+        System.Diagnostics.Debug.Assert(purchaseHistories != null, nameof(purchaseHistories) + " != null");
+        if (purchaseHistories.Count != 0)
+        {
+            foreach (var purchaseHistory in purchaseHistories)
+            {
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">@purchaseHistory.영화제목</h4>
+                    <p class="list-group-item-text">구매시각: @purchaseHistory.구매시각</p>
+                    <p class="list-group-item-text">만료일: @purchaseHistory.만료일자</p>
+                </div>
+            }
+        }
+        else
+        {
+                <div class="alert alert-info" role="alert">구매 내역이 없습니다.</div>
+        }
+    }
+</div>
+<div class="list-group">
+    <h3 class="h3">충전 내역</h3>
+    @{
+        System.Diagnostics.Debug.Assert(chargeHistories != null, nameof(chargeHistories) + " != null");
+        if (chargeHistories.Count != 0)
+        {
+            foreach (var chargeHistory in chargeHistories)
+            {
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">@chargeHistory.금액₩</h4>
+                    <p class="list-group-item-text">구매: @chargeHistory.시각</p>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info" role="alert">충전 내역이 없습니다.</div>
+        }
+    }
 </div>

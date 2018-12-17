@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Cinetube.Models
 {
@@ -15,7 +13,7 @@ namespace Cinetube.Models
         {
             List<string> list = new List<string>();
             using (var connection =
-                new SqlConnection("server = sappho192.iptime.org;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+                new SqlConnection(connectionUrl))
             {
                 var command = new SqlCommand(
                     "SELECT 힌트번호, 힌트질문  FROM 비밀번호힌트",
@@ -27,7 +25,7 @@ namespace Cinetube.Models
                     {
                         var hintNo = Convert.ToInt32(reader[0]);
                         var hintStr = Convert.ToString(reader[1]);
-                        Console.WriteLine($"힌트번호: {hintNo}, 힌트: {hintStr}");
+                        //Console.WriteLine($"힌트번호: {hintNo}, 힌트: {hintStr}");
                         list.Add(hintStr);
                     }
                 }
@@ -37,6 +35,9 @@ namespace Cinetube.Models
         };
 
         public static bool Loggedin = false;
+
+        public static readonly string connectionUrl =
+            "server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;";
 
         public static List<string> PwHintList = getHintList();
 

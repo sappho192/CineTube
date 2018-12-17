@@ -1,14 +1,42 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    List<MovieInfo> recentMoviesInfo = ViewData["RecentMoviesInfo"] as List<MovieInfo>;
 }
 
 <div class="row">
     <div class="col-md-3">
         <h2>최신 영화</h2>
-        <ul>
-            <li>영화1</li>
-            <li>영화2</li>
-        </ul>
+        @{
+            const int MAX_LENGTH = 200;
+            foreach (var movieInfo in recentMoviesInfo)
+            {
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">@movieInfo.제목</h3>
+                    </div>
+                    <div class="panel-body">
+                        @{if(@movieInfo.줄거리.Length < MAX_LENGTH) {
+                              @movieInfo.줄거리
+                          }
+                          else
+                          {
+                              string shortstory = movieInfo.줄거리.Substring(0, MAX_LENGTH);
+                              shortstory = shortstory.Insert(shortstory.Length, "...");
+                              @shortstory
+                          }
+                        }
+                    </div>
+                    <table class="table">
+                        <tr>
+                            <th style="text-align:center">@movieInfo.금액₩</th>
+                            <th style="text-align:center">@movieInfo.영화시간 분</th>
+                            <th style="text-align:center">@movieInfo.관람제한</th>
+                        </tr>
+                    </table>
+                    <div class="panel-footer">영화 세부정보</div>
+                </div>
+            }
+        }
     </div>
     <div class="col-md-3">
         <h2>인기 영화</h2>
