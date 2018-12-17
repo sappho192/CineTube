@@ -116,14 +116,7 @@ namespace Cinetube.Controllers
 
         public IActionResult MyPage()
         {
-            string ID = String.Empty;
-            foreach (String key in session.Keys)
-            {
-                if (key.Equals("Loggedin") && session.GetString(key) == "true")
-                {
-                    ID = session.GetString("ID");
-                }
-            }
+            var ID = getCurrentID();
 
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
@@ -187,8 +180,47 @@ namespace Cinetube.Controllers
             return View();
         }
 
+        private string getCurrentID()
+        {
+            string ID = String.Empty;
+            foreach (String key in session.Keys)
+            {
+                if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                {
+                    ID = session.GetString("ID");
+                }
+            }
+
+            return ID;
+        }
+
         public IActionResult MyMovies()
         {
+            string ID = getCurrentID();
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,구매번호,구매시각,만료일자 FROM 구매내역\r\nINNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    List<AvailableMovie> availableMovies = new List<AvailableMovie>();
+                    while (reader.Read())
+                    {
+                        // 제목,구매번호,구매시각,만료일자
+                        string 제목 = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        int 구매번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        string 구매시각 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[2]);
+                        string 만료일자 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        availableMovies.Add(new AvailableMovie(제목, 구매번호, 구매시각, 만료일자));
+                        Console.WriteLine($"제목: {제목}, 구매번호: {구매번호}, 구매시각: {구매시각}, 만료일자: {만료일자}");
+                    }
+
+                    ViewData["AvailableMovies"] = availableMovies;
+                }
+            }
             return View();
         }
 
@@ -216,14 +248,7 @@ namespace Cinetube.Controllers
 
         public IActionResult doCharge(int price)
         {
-            string ID = String.Empty;
-            foreach (String key in session.Keys)
-            {
-                if (key.Equals("Loggedin") && session.GetString(key) == "true")
-                {
-                    ID = session.GetString("ID");
-                }
-            }
+            string ID = getCurrentID();
 
             using (var connection =
                 new SqlConnection(

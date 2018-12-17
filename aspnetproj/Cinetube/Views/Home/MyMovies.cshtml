@@ -1,3 +1,19 @@
-﻿<div>
-    내가 산 영화들 목록
+﻿@{
+    List<AvailableMovie> availableMovies = ViewData["AvailableMovies"] as List<AvailableMovie>;
+}
+
+<div class="list-group">
+    <h3 class="h3">시청 가능한 영화</h3>
+    @{
+        System.Diagnostics.Debug.Assert(availableMovies != null, nameof(availableMovies) + " != null");
+        foreach (var availableMovie in availableMovies)
+        {
+            <div class="list-group-item">
+                <h4 class="list-group-item-heading">@availableMovie.제목</h4>
+                <p class="list-group-item-text">누적 구매횟수: @availableMovie.구매번호</p>
+                <p class="list-group-item-text">구매시각: @availableMovie.구매시각</p>
+                <p class="list-group-item-text">구매만료일자: @availableMovie.만료일자</p>
+            </div>
+        }
+    }
 </div>
