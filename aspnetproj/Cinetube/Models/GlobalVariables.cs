@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Cinetube.Models
 {
@@ -15,7 +13,7 @@ namespace Cinetube.Models
         {
             List<string> list = new List<string>();
             using (var connection =
-                new SqlConnection(GlobalVariables.connectionUrl))
+                new SqlConnection(connectionUrl))
             {
                 var command = new SqlCommand(
                     "SELECT 힌트번호, 힌트질문  FROM 비밀번호힌트",
