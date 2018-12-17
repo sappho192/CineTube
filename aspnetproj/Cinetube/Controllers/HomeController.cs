@@ -57,7 +57,7 @@ namespace Cinetube.Controllers
 
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
-                var command = new SqlCommand($"DECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nSET @ID = (select 1 from 사용자 where ID IN (\'{ID}\'))\r\nSET @PW = (select 1 from 사용자 where ID = \'{ID}\' and PW = \'{PW}\')\r\n\r\nselect @ID as id, @PW as pw", connection);
+                var command = new SqlCommand($"DECLARE @INPUT_ID VARCHAR(20) = \'{ID}\'\r\nDECLARE @INPUT_PW VARCHAR(20) = \'{PW}\'\r\nDECLARE @ID INT = 0\r\nDECLARE @PW INT = 0\r\nDECLARE @UNUM INT = 0\r\nDECLARE @USERNO INT = 0\r\n\r\nSET @ID = (select 1 from 사용자 where ID IN (@INPUT_ID))\r\nIF @ID=1\r\n   SET @UNUM = (select 1 from 사용자, 관리자 where ID=@INPUT_ID and 사용자.사용자번호=관리자.사용자번호)\r\nIF @UNUM=1\r\n   SET @ID=2\r\nIF @ID>0\r\n   SET @PW = (select 1 from 사용자 where ID=@INPUT_ID and PW=@INPUT_PW)\r\nSET @USERNO = (select 사용자번호 from 사용자 where ID=@INPUT_ID and PW=@INPUT_PW)\r\n\r\nselect @ID as id, @PW as pw, @USERNO as userno", connection);
                 connection.Open();
                 Console.WriteLine($"ID: {ID}, PW: {PW}");
                 using (var reader = command.ExecuteReader())
