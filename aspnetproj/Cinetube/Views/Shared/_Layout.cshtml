@@ -117,10 +117,10 @@
                                                     <select onchange="selectHintNo.call(this,event)" class="form-control" id="sel1">
 
                                                         @{for (var index = 0; index < GlobalVariables.PwHintList.Count; index++)
-                                                            {
-                                                                string hint = GlobalVariables.PwHintList[index];
-                                                                <option value="@index">@hint</option>
-                                                            }}
+                                                        {
+                                                            string hint = GlobalVariables.PwHintList[index];
+                                                            <option value="@index">@hint</option>
+                                                        }}
                                                         <input class="hidden" type="hidden" id="PWHint" name="PWHintNo" />
                                                     </select>
                                                     <div class="form-group">
@@ -147,6 +147,7 @@
                                                 <div class="modal-footer">
                                                     <button type="submit" class="btn btn-primary">회원 가입</button>
                                                 </div>
+                                            </div>
                                         </form>
                                     </div>
                                 </div>
