@@ -17,18 +17,81 @@ namespace Cinetube.Controllers
         public HomeController(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
-            this.session = httpContextAccessor.HttpContext.Session;
+            session = httpContextAccessor.HttpContext.Session;
         }
 
         public IActionResult Index()
         {
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                int index = 0;
+                string commandRecentPageStr =
+                    $"SELECT TOP 5 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
+
+                var commandRecentPage = new SqlCommand(commandRecentPageStr, connection);
+                connection.Open();
+                using (var reader = commandRecentPage.ExecuteReader())
+                {
+                    List<MovieInfo> recentMoviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+                        recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+                    }
+
+                    ViewData["RecentMoviesInfo"] = recentMoviesInfo;
+                }
+            }
+
             return View();
         }
 
         public IActionResult AllMovies()
         {
-            ViewData["Message"] = "영화 목록";
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                int index = 0;
+                string commandGeneralPageStr =
+                    $"SELECT TOP 10 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
 
+                var commandGeneralPage = new SqlCommand(commandGeneralPageStr, connection);
+                connection.Open();
+                using (var reader = commandGeneralPage.ExecuteReader())
+                {
+                    List<MovieInfo> moviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호= reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+                    }
+
+                    ViewData["MoviesInfo"] = moviesInfo;
+                }
+            }
+
+            ViewData["Title"] = "영화 찾기";
             return View();
         }
 

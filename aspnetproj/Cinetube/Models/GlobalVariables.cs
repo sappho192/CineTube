@@ -25,7 +25,7 @@ namespace Cinetube.Models
                     {
                         var hintNo = Convert.ToInt32(reader[0]);
                         var hintStr = Convert.ToString(reader[1]);
-                        Console.WriteLine($"힌트번호: {hintNo}, 힌트: {hintStr}");
+                        //Console.WriteLine($"힌트번호: {hintNo}, 힌트: {hintStr}");
                         list.Add(hintStr);
                     }
                 }
