@@ -1,3 +1,31 @@
-﻿<div>
-    내 정보 출력하는곳
+﻿@{
+    List<PurchaseHistory> purchaseHistories = ViewData["PurchaseHistories"] as List<PurchaseHistory>;
+    List<ChargeHistory> chargeHistories = ViewData["ChargeHistories"] as List<ChargeHistory>;
+}
+<div class="list-group">
+    <h3 class="h3">구매 내역</h3>
+    @{
+        System.Diagnostics.Debug.Assert(purchaseHistories != null, nameof(purchaseHistories) + " != null");
+        foreach (var purchaseHistory in purchaseHistories)
+        {
+            <div class="list-group-item">
+                <h4 class="list-group-item-heading">@purchaseHistory.영화제목</h4>
+                <p class="list-group-item-text">구매: @purchaseHistory.구매시각</p>
+                <p class="list-group-item-text">구매: @purchaseHistory.만료일자</p>
+            </div>
+        }
+    }
+</div>
+<div class="list-group">
+    <h3 class="h3">충전 내역</h3>
+    @{
+        System.Diagnostics.Debug.Assert(chargeHistories != null, nameof(chargeHistories) + " != null");
+        foreach (var chargeHistory in chargeHistories)
+        {
+            <div class="list-group-item">
+                <h4 class="list-group-item-heading">@chargeHistory.금액</h4>
+                <p class="list-group-item-text">구매: @chargeHistory.시각</p>
+            </div>
+        }
+    }
 </div>
