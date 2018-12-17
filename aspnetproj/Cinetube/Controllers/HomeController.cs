@@ -127,12 +127,29 @@ namespace Cinetube.Controllers
 
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
+                string 회원정보 =
+                    $"SELECT ID ,이름, 생년월일,핸드폰번호, 보유금액\r\n  FROM 사용자\r\n  INNER JOIN 회원 ON 사용자.사용자번호 = 회원.사용자번호 WHERE ID=\'{ID}\'";
                 string 구매내역 =
                     $"DECLARE @MOVIENUM INT\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,영화.영화번호,구매번호 ,구매시각 ,만료일자 FROM 구매내역\r\n  INNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호";
                 string 충전내역 = $"SELECT 충전금액, 충전시각 FROM 충전내역\r\n  WHERE 사용자번호 = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')";
+                var commandUserInfo = new SqlCommand(회원정보, connection);
                 var commandPurchased = new SqlCommand(구매내역, connection);
                 var commandCharged = new SqlCommand(충전내역, connection);
                 connection.Open();
+                using (var reader = commandUserInfo.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        // ID, 이름, 생년월일, 폰번호, 잔액
+                        string userID = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        string 이름 = reader[1] is DBNull ? String.Empty : Convert.ToString(reader[1]);
+                        string 생년월일 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[2]);
+                        string 폰번호 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        int 잔액 = reader[4] is DBNull ? 0 : Convert.ToInt32(reader[4]);
+                        ViewData["UserInfo"] = new UserInfo(userID, 이름, 생년월일, 폰번호, 잔액);
+                        Console.WriteLine($"ID: {userID}, 이름: {이름}, 생년월일: {생년월일}, 폰번호: {폰번호}");
+                    }
+                }
 
                 // 영화번호, 구매번호, 구매시각, 만료일자
                 List<PurchaseHistory> purchaseHistories = new List<PurchaseHistory>();
@@ -141,10 +158,10 @@ namespace Cinetube.Controllers
                     while (reader.Read())
                     {
                         string 영화제목 = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
-                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[1]);
-                        int 구매번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[2]);
-                        string 구매시각 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[3]);
-                        string 만료일자 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 영화번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        int 구매번호 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 구매시각 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 만료일자 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
                         purchaseHistories.Add(new PurchaseHistory(영화제목, 영화번호, 구매번호, 구매시각, 만료일자));
                         Console.WriteLine($"영화제목: {영화제목}, 영화번호: {영화번호}, 구매번호: {구매번호}, 구매시각: {구매시각}, 만료일자: {만료일자}");
                     }

@@ -1,7 +1,25 @@
 ﻿@{
     List<PurchaseHistory> purchaseHistories = ViewData["PurchaseHistories"] as List<PurchaseHistory>;
     List<ChargeHistory> chargeHistories = ViewData["ChargeHistories"] as List<ChargeHistory>;
+    UserInfo userInfo = ViewData["UserInfo"] as UserInfo;
+    System.Diagnostics.Debug.Assert(userInfo != null, nameof(userInfo) + " != null");
 }
+
+@{
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">회원 정보</h3>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item">ID: @userInfo.ID</li>
+            <li class="list-group-item">이름: @userInfo.이름</li>
+            <li class="list-group-item">생년월일: @userInfo.생년월일</li>
+            <li class="list-group-item">폰번호: @userInfo.핸드폰번호</li>
+            <li class="list-group-item">보유 금액: @userInfo.보유금액₩</li>
+        </ul>
+    </div>
+}
+
 <div class="list-group">
     <h3 class="h3">구매 내역</h3>
     @{
