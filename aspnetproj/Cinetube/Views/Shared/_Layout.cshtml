@@ -40,6 +40,7 @@
             <div class="navbar-collapse collapse">
                 <ulk class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="AllMovies">영화 찾기</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
                     @{
                         bool loggedin = false;
 
@@ -58,20 +59,17 @@
                         {
                             <li><a asp-area="" asp-controller="Home" asp-action="MyPage">내 정보(@myID)</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="MyMovies">내 영화</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Board">자유게시판</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Charge">충전</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Logout">로그아웃</a></li>
                         }
                         else
                         {
                             <li><a href="#" class="btn" data-toggle="modal" data-target="#loginModal" data-backdrop="false">로그인</a></li>
-                            @*<li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>*@
-                            @*<li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>*@
-                            <li><a href="#" class="btn" data-toggle="modal" data-target="#signUpModal" data-backdrop="false">회원가입</a></li>
                             <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModal" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <form asp-controller="Home" asp-action="Authenticate" method="post">
-
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                 <h4 class="modal-title" id="myModalLabel">로그인</h4>
@@ -157,14 +155,7 @@
             </div>
         </div>
     </nav>
-
-    <script type="text/javascript">
-        function selectHintNo(event) {
-            document.getElementById('PWHint').value = this.selectedIndex;
-        }
-    </script>
     <partial name="_CookieConsentPartial" />
-
     <div class="container body-content">
         @RenderBody()
         <hr />
@@ -172,7 +163,6 @@
             <p>&copy; 2018 - Cinetube</p>
         </footer>
     </div>
-    
 <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"></script>
 <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"></script>
 @*<environment include="Development">

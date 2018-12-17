@@ -1,0 +1,33 @@
+﻿@{
+    int articleNo = (int)ViewData["articleNo"];
+    string ID = (string)ViewData["ID"];
+    string title = (string)ViewData["title"];
+    DateTime writeTime = (DateTime)ViewData["writeTime"];
+    string context = (string)ViewData["context"];
+}
+
+<h2>Article</h2>
+<table class="table">
+    <thread><tr><th>@articleNo 번 글</th><th>ID: @ID</th><th>제목: @title</th><th>작성시간: @writeTime</th></tr></thread>
+</table>
+<hr />
+<div class="container">
+    @context
+</div>
+<hr />
+<form method="post" action="/Home/NewSubarticle" id="NewSubarticle" name="NewSubarticle" class="form-inline">
+    <div>
+        <textarea rows="4" cols="50" maxlength="100" id="context" name="context" class="form-control"></textarea>
+        <button type="submit" class="btn btn-default">댓글 작성</button>
+    </div>
+    <input type="number" value="@articleNo" id="articleNo" name="articleNo" hidden />
+</form>
+<div class="commentList">
+    @foreach (var dt in Model)
+    {
+        <div class="panel panel-default">
+            <div class="panel-heading">@dt.subNo 번 댓글)   ID: <b>@dt.subID 님</b></div>
+            <div class="panel-body">@dt.subContext</div>
+        </div>
+    }
+</div>
