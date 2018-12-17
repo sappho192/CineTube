@@ -15,7 +15,7 @@ namespace Cinetube.Models
         {
             List<string> list = new List<string>();
             using (var connection =
-                new SqlConnection("server = sappho192.iptime.org;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+                new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
             {
                 var command = new SqlCommand(
                     "SELECT 힌트번호, 힌트질문  FROM 비밀번호힌트",
