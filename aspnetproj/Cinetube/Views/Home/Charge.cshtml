@@ -20,9 +20,13 @@
 }
 
 <form asp-controller="Home" asp-action="doCharge" method="post">
-    <div class="input-group">
-        <span class="input-group-addon">₩</span>
-        <input type="text" class="form-control" name="price" aria-label="Amount" placeholder="0">
-        <button type="submit" class="btn btn-primary">충전</button>
+    <div class="input-group" style="width: auto">
+        <table class="table">
+            <tr>
+                <td><h4>금액: </h4></td>
+                <td><input type="text" class="form-control" name="price" aria-label="Amount" placeholder="0"></td>
+                <td><button type="submit" class="btn btn-primary">충전</button></td>
+            </tr>
+        </table>
     </div>
 </form>
