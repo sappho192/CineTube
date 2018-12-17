@@ -221,6 +221,8 @@ namespace Cinetube.Controllers
                     ViewData["AvailableMovies"] = availableMovies;
                 }
             }
+
+            ViewData["Title"] = "내 영화";
             return View();
         }
 
@@ -243,6 +245,7 @@ namespace Cinetube.Controllers
                 ViewData["Result"] = null;
             }
 
+            ViewData["Title"] = "충전";
             return View();
         }
 
