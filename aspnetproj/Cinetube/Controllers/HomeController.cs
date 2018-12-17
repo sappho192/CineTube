@@ -183,7 +183,7 @@ namespace Cinetube.Controllers
                 ViewData["ChargeHistories"] = chargeHistories;
             }
 
-            //ViewData["ChargeHistory"] = 
+            ViewData["Title"] = "내 정보";
             return View();
         }
 
