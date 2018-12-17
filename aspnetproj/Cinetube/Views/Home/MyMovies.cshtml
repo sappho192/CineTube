@@ -10,7 +10,7 @@
         {
             <div class="list-group-item">
                 <h4 class="list-group-item-heading">@availableMovie.제목</h4>
-                <p class="list-group-item-text">누적 구매횟수: @availableMovie.구매번호</p>
+                <p class="list-group-item-text">누적 구매횟수: @Convert.ToString(availableMovie.구매번호 + 1)</p>
                 <p class="list-group-item-text">구매시각: @availableMovie.구매시각</p>
                 <p class="list-group-item-text">구매만료일자: @availableMovie.만료일자</p>
             </div>
