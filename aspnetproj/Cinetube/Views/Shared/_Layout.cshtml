@@ -4,8 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Cinetube</title>
-
-    <environment include="Development">
+    <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @*<environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
     </environment>
@@ -14,7 +15,7 @@
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
+    </environment>*@
 </head>
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
@@ -39,6 +40,7 @@
             <div class="navbar-collapse collapse">
                 <ulk class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="AllMovies">영화 찾기</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
                     @{
                         bool loggedin = false;
 
@@ -57,21 +59,17 @@
                         {
                             <li><a asp-area="" asp-controller="Home" asp-action="MyPage">내 정보(@myID)</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="MyMovies">내 영화</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Board">자유게시판</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Charge">충전</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Logout">로그아웃</a></li>
                         }
                         else
                         {
-                            @*<li><a> 로그인 안했음 </a></li>*@
                             <li><a href="#" class="btn" data-toggle="modal" data-target="#loginModal" data-backdrop="false">로그인</a></li>
-                            @*<li><a asp-area="" asp-controller="Home" asp-action="Login">로그인</a></li>*@
-                            @*<li><a asp-area="" asp-controller="Home" asp-action="SignUp">회원가입</a></li>*@
-                            <li><a href="#" class="btn" data-toggle="modal" data-target="#signUpModal" data-backdrop="false">회원가입</a></li>
                             <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModal" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <form asp-controller="Home" asp-action="Authenticate" method="post">
-
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                 <h4 class="modal-title" id="myModalLabel">로그인</h4>
@@ -99,7 +97,7 @@
                                         <form asp-controller="Home" asp-action="SignUp" method="post">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                <h4 class="modal-title" id="myModalLabel">회원 가입(SQL이 안먹힘)</h4>
+                                                <h4 class="modal-title" id="myModalLabel">회원 가입</h4>
                                             </div>
                                             <div class="modal-body">
                                                 <!--SignUp(string ID, string PW, string name, string birth, string ssn, string phone, string PWHint, string PWans)-->
@@ -116,10 +114,10 @@
                                                     <select onchange="selectHintNo.call(this,event)" class="form-control" id="sel1">
 
                                                         @{for (var index = 0; index < GlobalVariables.PwHintList.Count; index++)
-                                                            {
-                                                                string hint = GlobalVariables.PwHintList[index];
-                                                                <option value="@index">@hint</option>
-                                                            }}
+                                                        {
+                                                            string hint = GlobalVariables.PwHintList[index];
+                                                            <option value="@index">@hint</option>
+                                                        }}
                                                         <input class="hidden" type="hidden" id="PWHint" name="PWHintNo" />
                                                     </select>
                                                     <div class="form-group">
@@ -146,6 +144,7 @@
                                                 <div class="modal-footer">
                                                     <button type="submit" class="btn btn-primary">회원 가입</button>
                                                 </div>
+                                            </div>
                                         </form>
                                     </div>
                                 </div>
@@ -156,14 +155,7 @@
             </div>
         </div>
     </nav>
-
-    <script type="text/javascript">
-        function selectHintNo(event) {
-            document.getElementById('PWHint').value = this.selectedIndex;
-        }
-    </script>
     <partial name="_CookieConsentPartial" />
-
     <div class="container body-content">
         @RenderBody()
         <hr />
@@ -171,8 +163,9 @@
             <p>&copy; 2018 - Cinetube</p>
         </footer>
     </div>
-
-    <environment include="Development">
+<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"></script>
+@*<environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>
@@ -191,7 +184,7 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+    </environment>*@
 
     @RenderSection("Scripts", required: false)
 </body>
