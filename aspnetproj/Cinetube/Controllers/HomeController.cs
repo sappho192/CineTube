@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -113,6 +113,8 @@ namespace Cinetube.Controllers
 
         public IActionResult Authenticate(string ID, string PW)
         {
+            string temp_ID = ID;
+            string temp_PW = PW;
             if (ID == null || PW == null)
             {
                 return RedirectToAction("Index", "Home");
@@ -128,13 +130,16 @@ namespace Cinetube.Controllers
                     while (reader.Read())
                     {
                         int id = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
-                        int pw = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]); ;
-                        Console.WriteLine($"ID correct: {id}, PW correct: {pw}");
-                        if (id == 1 && pw == 1)
+                        int pw = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        int userno = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+
+                        if (id >= 1 && pw == 1)
                         {
+                            session.SetString("userNo", userno.ToString());
                             session.SetString("ID", ID);
                             session.SetString("Loggedin", "true");
                             session.SetString("SessionID", Guid.NewGuid().ToString());
+                            Console.WriteLine($"ID correct: {id}, PW correct: {pw}, userno: {userno}");
                         }
                     }
                 }
@@ -148,6 +153,148 @@ namespace Cinetube.Controllers
             session.Clear();
 
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult Board()
+        {
+            return Board(1);
+        }
+
+        [Route("Home/[action]/{pageNum}")]
+        [HttpGet]
+        public IActionResult Board(int pageNum)
+        {
+            var list = new List<BoardModel>();
+            int total = 0;
+            int last_page = 0;
+
+            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            {
+                var command = new SqlCommand("SELECT COUNT(*) FROM 게시글", connection);
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        total = Convert.ToInt32(reader[0]);
+                    }
+                }
+                last_page = (total + 9) / 10;
+                int five = (pageNum - 1) / 5;
+
+                ViewData["curr"] = pageNum;
+                ViewData["last"] = last_page;
+                ViewData["prev"] = (pageNum == 1 ? 1 : 0);
+                ViewData["next"] = (pageNum == last_page ? 1 : 0);
+                ViewData["five"] = five;
+
+                command = new SqlCommand("SELECT 게시글번호, ID, 제목, 작성시각 FROM 게시글, 사용자 WHERE 게시글.사용자번호=사용자.사용자번호 ORDER BY 게시글번호 DESC OFFSET "
+                        + (pageNum - 1) * 10 + " ROWS FETCH NEXT 10 ROWS ONLY", connection);
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var temp = new BoardModel
+                        {
+                            articleNo = Convert.ToInt32(reader[0]),
+                            ID = Convert.ToString(reader[1]),
+                            title = Convert.ToString(reader[2]),
+                            writeTime = Convert.ToDateTime(reader[3])
+                        };
+                        list.Add(temp);
+                    }
+                }
+            }
+
+            return View(list);
+        }
+
+        [Route("Home/[action]/{articleNo}")]
+        [HttpGet]
+        public IActionResult Article(int articleNo)
+        {
+            var list = new List<SubarticleModel>();
+            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            {
+                var command = new SqlCommand("SELECT 게시글번호, ID, 제목, 작성시각, 내용 FROM 게시글, 사용자 WHERE 게시글.사용자번호=사용자.사용자번호 and 게시글번호=" + articleNo, connection);
+                connection.Open();
+                
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ViewData["articleNo"] = Convert.ToInt32(reader[0]);
+                        ViewData["ID"] = Convert.ToString(reader[1]);
+                        ViewData["title"] = Convert.ToString(reader[2]);
+                        ViewData["writeTime"] = Convert.ToDateTime(reader[3]);
+                        ViewData["context"] = Convert.ToString(reader[4]);
+                    }
+                }
+
+                command = new SqlCommand("SELECT 댓글번호, ID, 내용 FROM 댓글, 사용자 WHERE 사용자.사용자번호=댓글.사용자번호 and 게시글번호=" + articleNo, connection);
+                
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var temp = new SubarticleModel
+                        {
+                            subNo = Convert.ToInt32(reader[0]),
+                            subID = Convert.ToString(reader[1]),
+                            subContext = Convert.ToString(reader[2])
+                        };
+                        list.Add(temp);
+                    }
+                }
+            }
+            
+            return View(list);
+        }
+
+        public IActionResult NewArticle()
+        {
+            return View();
+        }
+
+        public IActionResult AddArticle()
+        {
+            string title = Request.Form["title"].ToString();
+            string context = Request.Form["context"].ToString();
+            string userNo = session.GetString("userNo");
+            
+            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            {
+                string myquery = "DECLARE @NUM INT\r\nSET @NUM = (SELECT COUNT(*) FROM 게시글)" +
+                    "\r\nIF(@NUM != 0)\r\nSET @NUM = (SELECT MAX(게시글번호) FROM 게시글) + 1\r\nELSE SET @NUM = 1" +
+                    "\r\nINSERT INTO 게시글 VALUES(@NUM, " + userNo + ", '" + title + "', '" + context + "', GETDATE());";
+
+                var command = new SqlCommand(myquery, connection);
+                connection.Open();
+                command.ExecuteReader();
+            }
+
+            return RedirectToAction("Board", "Home");
+        }
+
+        public IActionResult NewSubarticle()
+        {
+            string articleNo = Request.Form["articleNo"].ToString();
+            string context = Request.Form["context"].ToString();
+            string userNo = session.GetString("userNo");
+
+            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            {
+                string myquery = "DECLARE @NUM INT\r\nDECLARE @ARTICLE INT=" + articleNo +
+                    "\r\nSET @NUM = (SELECT COUNT(*) FROM 댓글 WHERE 게시글번호 = @ARTICLE)" +
+                    "\r\nIF(@NUM != 0) SET @NUM = (SELECT MAX(댓글번호) FROM 댓글 WHERE 게시글번호 = @ARTICLE) + 1\r\nELSE SET @NUM = 1" +
+                    "\r\nINSERT INTO 댓글 VALUES(@ARTICLE, @NUM, " + userNo + ", '" + context + "')";
+                var command = new SqlCommand(myquery, connection);
+                connection.Open();
+                command.ExecuteReader();
+            }
+            
+            return RedirectToAction("Article", "Home", new { id = articleNo });
         }
 
         public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns)
