@@ -65,6 +65,7 @@
                         else
                         {
                             <li><a href="#" class="btn" data-toggle="modal" data-target="#loginModal" data-backdrop="false">로그인</a></li>
+                            <li><a href="#" class="btn" data-toggle="modal" data-target="#signUpModal" data-backdrop="false">회원가입</a></li>
                             <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModal" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -113,10 +114,10 @@
                                                     <select onchange="selectHintNo.call(this,event)" class="form-control" id="sel1">
 
                                                         @{for (var index = 0; index < GlobalVariables.PwHintList.Count; index++)
-                                                        {
-                                                            string hint = GlobalVariables.PwHintList[index];
-                                                            <option value="@index">@hint</option>
-                                                        }}
+                                                            {
+                                                                string hint = GlobalVariables.PwHintList[index];
+                                                                <option value="@index">@hint</option>
+                                                            }}
                                                         <input class="hidden" type="hidden" id="PWHint" name="PWHintNo" />
                                                     </select>
                                                     <div class="form-group">
