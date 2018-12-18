@@ -641,13 +641,13 @@ namespace Cinetube.Controllers
         public IActionResult Purchase(string purchaseType, int movieNum)
         {
             // 이미 보유 중인 영화인지 확인
-            string ID = getCurrentID();
+            string userNo = getCurrentUserNo();
             List<int> availableMovies = new List<int>();
 
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = 3\r\nSELECT 영화번호 FROM 구매내역\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
+                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = {userNo}\r\nSELECT 영화번호 FROM 구매내역\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
                 using (var reader = command.ExecuteReader())
@@ -668,7 +668,6 @@ namespace Cinetube.Controllers
 
 
             int isLend = purchaseType.Equals("lend") ? 1 : 0;
-            string userNo = session.GetString("userNo");
             int balance = 0;
             int moviePrice = 0;
 
