@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Cinetube.Models;
 using Microsoft.AspNetCore.Http;
@@ -84,7 +85,30 @@ namespace Cinetube.Controllers
             {
                 ViewData["Result"] = null;
             }
+            // 잔액확인하기
+            if (session.Keys.Contains("Loggedin"))
+            {
+                string userNo = getCurrentUserNo();
+                int balance = 0;
+                using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+                {
+                    string balanceStr =
+                        $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
+                    var commandBalanceInfo = new SqlCommand(balanceStr, connection);
+                    connection.Open();
+                    using (var reader = commandBalanceInfo.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            balance = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        }
+                    }
+                }
 
+                ViewData["Balance"] = balance;
+            }
+
+            // 최근 영화 긁어오기
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 int index = 0;
