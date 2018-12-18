@@ -1,44 +1,193 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ISession session = HttpContextAccessor.HttpContext.Session;
+    IEnumerable<String> Keys = session.Keys;
     List<MovieInfo> moviesInfo = ViewData["MoviesInfo"] as List<MovieInfo>;
+    if (ViewData["Result"] != null)
+    {
+        if (ViewData["Result"].Equals("SUCCESS"))
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>결제 성공!</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("EXPENSIVE"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>잔액 부족</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("ALREADY"))
+        {
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>이미 보유 중인 영화입니다</strong>
+            </div>
+        }
+    }
 }
 
 <h2>@ViewData["Title"]</h2>
 
-<p>모든 영화들 나열. 영화 attribute들 전부.<br/>
-    영화 클릭하면 나오는 것<br/>
-    -구매하기<br />
-    -대여하기<br />
+<p>
+    모든 영화들 나열. 영화 attribute들 전부.<br />
+    영화 클릭하면 나오는 것<br />
     -한줄평 리스트<br />
 </p>
 
 @{
     const int MAX_LENGTH = 200;
-    foreach (var movieInfo in moviesInfo)
+    System.Diagnostics.Debug.Assert(moviesInfo != null, nameof(moviesInfo) + " != null");
+    for (var index = 0; index < moviesInfo.Count; index++)
     {
+        var movieInfo = moviesInfo[index];
         <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">@movieInfo.제목</h3>
             </div>
             <div class="panel-body">
-                @{if(@movieInfo.줄거리.Length < MAX_LENGTH) {
-                      @movieInfo.줄거리
-                  }
-                  else
-                  {
-                      string shortstory = movieInfo.줄거리.Substring(0, MAX_LENGTH);
-                      shortstory = shortstory.Insert(shortstory.Length, "...");
-                      @shortstory
-                  }
+                @if (@movieInfo.줄거리.Length < MAX_LENGTH)
+                {
+                    @movieInfo.줄거리
                 }
+                else
+                {
+                    string shortstory = movieInfo.줄거리.Substring(0, MAX_LENGTH);
+                    shortstory = shortstory.Insert(shortstory.Length, "...");
+                    @shortstory
+                }
+
             </div>
             <table class="table">
                 <tr>
-                    <th style="text-align:center">@movieInfo.금액₩</th>
-                    <th style="text-align:center">@movieInfo.영화시간 분</th>
-                    <th style="text-align:center">@movieInfo.관람제한</th>
+                    <th style="text-align: center">@movieInfo.금액₩</th>
+                    <th style="text-align: center">@movieInfo.영화시간 분</th>
+                    <th style="text-align: center">@movieInfo.관람제한</th>
                 </tr>
             </table>
-            <div class="panel-footer">영화 세부정보</div>
+            <div class="panel-footer" style="text-align: center">
+                <a href="#" data-toggle="modal" data-target="#movieModal@(index.ToString())" data-backdrop="true">영화 세부정보</a>
+            </div>
+            <div class="modal" id="movieModal@(index.ToString())" tabindex="-1" role="dialog" aria-labelledby="movieModal@(index.ToString())" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">@movieInfo.제목</h4>
+                        </div>
+                        <div class="modal-body">
+                            <ul>
+                                <li>@movieInfo.줄거리</li>
+                                <li>
+                                    <table class="table">
+                                        <tr>
+                                            <th style="text-align: center">@movieInfo.금액₩</th>
+                                            <th style="text-align: center">@movieInfo.영화시간 분</th>
+                                            <th style="text-align: center" colspan="2">@movieInfo.관람제한</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="text-align: center">@String.Join(", ", movieInfo.장르.ToArray())</th>
+                                            <th style="text-align: center">@movieInfo.개봉연도 년</th>
+                                            <th style="text-align: center">@movieInfo.감독 감독</th>
+                                            <th style="text-align: center">@movieInfo.제작사 제작</th>
+                                        </tr>
+                                    </table>
+                                </li>
+                            </ul>
+                        </div>
+                        @{
+                            bool loggedin = false;
+                            string userNo = string.Empty;
+
+                            if (Keys.Contains("ID"))
+                            {
+                                foreach (String key in Keys)
+                                {
+                                    if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                                    {
+                                        loggedin = true;
+                                        userNo = session.GetString("userNo");
+                                    }
+                                }
+                            }
+                            if (loggedin)
+                            {
+                                <div class="modal-footer">
+                                    <table class="table">
+                                        <tr>
+                                            <th style="text-align: center" colspan="2">
+                                                <h5>잔액: @ViewData["Balance"].ToString() ₩</h5>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align: center">
+                                                <form asp-controller="Home" asp-action="Purchase" method="post">
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
+                                                    <input type="hidden" name="purchaseType" value="buy" />
+                                                    <button type="submit" class="btn btn-primary">구매하기</button>
+                                                </form>
+                                            </td>
+                                            <td style="text-align: center">
+                                                <form asp-controller="Home" asp-action="Purchase" method="post">
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
+                                                    <input type="hidden" name="purchaseType" value="lend" />
+                                                    <button type="submit" class="btn btn-primary">대여하기</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <form method="post" action="/Home/NewMovieComment" name="NewMovieComment" class="form-inline">
+                                        <div class="row">
+                                            <label  class="col-xs-1 col-sm-1">평점: </label>
+                                            <input  class="col-xs-1 col-sm-3 form-control" type="number" name="grade" step="0.1" min="1.0" max="5.0">
+                                            <label  class="col-xs-1 col-sm-1">내용: </label>
+                                            <input  class="col-xs-1 col-sm-7 form-control" type="text"  name="content">
+                                            <button class="col-xs-1 col-sm-2 form-control btn btn-default" type="submit">작성</button><br/>
+                                        </div>
+                                        <input type="number" value="@movieInfo.영화번호" name="movieNum" hidden />
+                                        <input type="number" value="@userNo" name="userNo" hidden />
+                                    </form>
+                                </div>
+                            }
+                        }
+
+                        @{
+                            if (movieInfo.한줄평.Count > 0)
+                            {
+                                <div class="modal-body">
+                                    <div><h5>최근 한줄평</h5></div>
+                                    @{
+                                        foreach (var comment in movieInfo.한줄평)
+                                        {
+                                            string panelType = string.Empty;
+                                            if (comment.평점 >= 4.0)
+                                            {
+                                                panelType = "panel-success";
+                                            } else if (comment.평점 >= 3.0 && comment.평점 < 4.0)
+                                            {
+                                                panelType = "panel-info";
+                                            } else if (comment.평점 >= 2.0 && comment.평점 < 3.0)
+                                            {
+                                                panelType = "panel-warning";
+                                            } else if (comment.평점 < 2.0)
+                                            {
+                                                panelType = "panel-danger";
+                                            }
+                                            <div class="panel @panelType">
+                                                <div class="panel-heading"><b>평점: @comment.평점</b></div>
+                                                <div class="panel-body"><strong>@@@comment.아이디:</strong> @comment.내용</div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     }
 }
