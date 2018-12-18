@@ -469,6 +469,24 @@ namespace Cinetube.Controllers
                 ViewData["Result"] = null;
             }
 
+            string userNo = getCurrentUserNo();
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string balanceStr =
+                    $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
+                var commandBalanceInfo = new SqlCommand(balanceStr, connection);
+                connection.Open();
+                using (var reader = commandBalanceInfo.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int 잔액 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        ViewData["Balance"] = 잔액.ToString();
+                    }
+                }
+            }
+
+
             ViewData["Title"] = "충전";
             return View();
         }
