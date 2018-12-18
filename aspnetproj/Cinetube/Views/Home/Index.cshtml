@@ -8,6 +8,7 @@
         <h2>최신 영화</h2>
         @{
             const int MAX_LENGTH = 200;
+            System.Diagnostics.Debug.Assert(recentMoviesInfo != null, nameof(recentMoviesInfo) + " != null");
             foreach (var movieInfo in recentMoviesInfo)
             {
                 <div class="panel panel-info">

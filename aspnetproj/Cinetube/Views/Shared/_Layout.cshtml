@@ -20,7 +20,6 @@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
-    bool login = GlobalVariables.Loggedin;
     ISession session = HttpContextAccessor.HttpContext.Session;
     IEnumerable<String> Keys = session.Keys;
     String myID = string.Empty;

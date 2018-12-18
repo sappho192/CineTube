@@ -34,8 +34,6 @@ namespace Cinetube.Models
             return list;
         };
 
-        public static bool Loggedin = false;
-
         public static readonly string connectionUrl =
             "server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;";
 
