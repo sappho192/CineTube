@@ -1,9 +1,11 @@
-﻿namespace Cinetube.Models
+﻿using System.Collections.Generic;
+
+namespace Cinetube.Models
 {
     public class MovieInfo
     {
         public MovieInfo(int movienum, string title, int price, string previewuri, string movieuri, int openyear,
-            string story, string agelimit, int duration, string company, string director)
+            string story, string agelimit, int duration, string company, string director, List<string> genres, List<MovieComment> comments)
         {
             영화번호 = movienum;
             제목 = title;
@@ -16,6 +18,8 @@
             영화시간 = duration;
             제작사 = company;
             감독 = director;
+            장르 = genres;
+            한줄평 = comments;
         }
         public int 영화번호 { get; }
         public string 제목 { get; }
@@ -28,5 +32,7 @@
         public int 영화시간 { get; }
         public string 제작사 { get; }
         public string 감독 { get; }
+        public List<string> 장르 { get; }
+        public List<MovieComment> 한줄평 { get; }
     }
 }
