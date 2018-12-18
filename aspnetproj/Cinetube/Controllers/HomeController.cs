@@ -404,6 +404,20 @@ namespace Cinetube.Controllers
             return ID;
         }
 
+        private string getCurrentUserNo()
+        {
+            string userNo = String.Empty;
+            foreach (String key in session.Keys)
+            {
+                if (key.Equals("Loggedin") && session.GetString(key) == "true")
+                {
+                    userNo = session.GetString("userNo");
+                }
+            }
+
+            return userNo;
+        }
+
         public IActionResult MyMovies()
         {
             string ID = getCurrentID();
