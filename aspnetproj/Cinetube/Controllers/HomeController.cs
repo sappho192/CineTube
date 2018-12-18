@@ -297,7 +297,7 @@ namespace Cinetube.Controllers
             int total = 0;
             int last_page = 0;
 
-            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 var command = new SqlCommand("SELECT COUNT(*) FROM 게시글", connection);
                 connection.Open();
@@ -344,7 +344,7 @@ namespace Cinetube.Controllers
         public IActionResult Article(int articleNo)
         {
             var list = new List<SubarticleModel>();
-            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 var command = new SqlCommand("SELECT 게시글번호, ID, 제목, 작성시각, 내용 FROM 게시글, 사용자 WHERE 게시글.사용자번호=사용자.사용자번호 and 게시글번호=" + articleNo, connection);
                 connection.Open();
@@ -392,7 +392,7 @@ namespace Cinetube.Controllers
             string context = Request.Form["context"].ToString();
             string userNo = session.GetString("userNo");
 
-            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string myquery = "DECLARE @NUM INT\r\nSET @NUM = (SELECT COUNT(*) FROM 게시글)" +
                     "\r\nIF(@NUM != 0)\r\nSET @NUM = (SELECT MAX(게시글번호) FROM 게시글) + 1\r\nELSE SET @NUM = 1" +
@@ -412,7 +412,7 @@ namespace Cinetube.Controllers
             string context = Request.Form["context"].ToString();
             string userNo = session.GetString("userNo");
 
-            using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string myquery = "DECLARE @NUM INT\r\nDECLARE @ARTICLE INT=" + articleNo +
                     "\r\nSET @NUM = (SELECT COUNT(*) FROM 댓글 WHERE 게시글번호 = @ARTICLE)" +
