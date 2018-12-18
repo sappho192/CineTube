@@ -1,11 +1,40 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ISession session = HttpContextAccessor.HttpContext.Session;
+    IEnumerable<String> Keys = session.Keys;
     List<MovieInfo> moviesInfo = ViewData["MoviesInfo"] as List<MovieInfo>;
+    if (ViewData["Result"] != null)
+    {
+        if (ViewData["Result"].Equals("SUCCESS"))
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>결제 성공!</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("EXPENSIVE"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>잔액 부족</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("ALREADY"))
+        {
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>이미 보유 중인 영화입니다</strong>
+            </div>
+        }
+    }
 }
 
 <h2>@ViewData["Title"]</h2>
 
-<p>모든 영화들 나열. 영화 attribute들 전부.<br/>
-    영화 클릭하면 나오는 것<br/>
+<p>
+    모든 영화들 나열. 영화 attribute들 전부.<br />
+    영화 클릭하면 나오는 것<br />
     -구매하기<br />
     -대여하기<br />
     -한줄평 리스트<br />

@@ -73,14 +73,23 @@ namespace Cinetube.Controllers
             return View();
         }
 
-        public IActionResult AllMovies()
+        public IActionResult AllMovies(string result = null)
         {
+            if (result != null)
+            {
+                Console.WriteLine($"구매 결과: {result}");
+                ViewData["Result"] = result;
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 int index = 0;
                 string commandGeneralPageStr =
                     $"SELECT TOP 10 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
-
                 var commandGeneralPage = new SqlCommand(commandGeneralPageStr, connection);
                 connection.Open();
                 using (var reader = commandGeneralPage.ExecuteReader())
@@ -89,7 +98,7 @@ namespace Cinetube.Controllers
                     while (reader.Read())
                     {
                         // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
-                        int 영화번호= reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
                         string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
                         int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
                         string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
@@ -252,7 +261,7 @@ namespace Cinetube.Controllers
             {
                 var command = new SqlCommand("SELECT 게시글번호, ID, 제목, 작성시각, 내용 FROM 게시글, 사용자 WHERE 게시글.사용자번호=사용자.사용자번호 and 게시글번호=" + articleNo, connection);
                 connection.Open();
-                
+
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -266,7 +275,7 @@ namespace Cinetube.Controllers
                 }
 
                 command = new SqlCommand("SELECT 댓글번호, ID, 내용 FROM 댓글, 사용자 WHERE 사용자.사용자번호=댓글.사용자번호 and 게시글번호=" + articleNo, connection);
-                
+
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -281,7 +290,7 @@ namespace Cinetube.Controllers
                     }
                 }
             }
-            
+
             return View(list);
         }
 
@@ -295,7 +304,7 @@ namespace Cinetube.Controllers
             string title = Request.Form["title"].ToString();
             string context = Request.Form["context"].ToString();
             string userNo = session.GetString("userNo");
-            
+
             using (var connection = new SqlConnection("server = sappho192.iptime.org,21433;database = CinetubeDB2;uid=cinetube;pwd=qwer12#$;"))
             {
                 string myquery = "DECLARE @NUM INT\r\nSET @NUM = (SELECT COUNT(*) FROM 게시글)" +
@@ -326,7 +335,7 @@ namespace Cinetube.Controllers
                 connection.Open();
                 command.ExecuteReader();
             }
-            
+
             return RedirectToAction("Article", "Home", new { id = articleNo });
         }
 
@@ -539,6 +548,89 @@ namespace Cinetube.Controllers
                 connection.Open();
                 var result = command.ExecuteNonQuery();
                 return RedirectToAction("Charge", "Home", new { result = "SUCCESS" });
+            }
+        }
+
+        public IActionResult Purchase(string purchaseType, int movieNum)
+        {
+            // 이미 보유 중인 영화인지 확인
+            string ID = getCurrentID();
+            List<int> availableMovies = new List<int>();
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = 3\r\nSELECT 영화번호 FROM 구매내역\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        // 제목,구매번호,구매시각,만료일자
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        availableMovies.Add(영화번호);
+                    }
+                }
+            }
+
+            if (availableMovies.Contains(movieNum))
+            {
+                return RedirectToAction("AllMovies", "Home", new { result = "ALREADY" });
+            }
+
+
+            int isLend = purchaseType.Equals("lend") ? 1 : 0;
+            string userNo = session.GetString("userNo");
+            int balance = 0;
+            int moviePrice = 0;
+
+            // 잔액확인하기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string balanceStr =
+                    $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
+                var commandBalanceInfo = new SqlCommand(balanceStr, connection);
+                connection.Open();
+                using (var reader = commandBalanceInfo.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        balance = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                    }
+                }
+            }
+            // 영화 금액 확인하기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string moviePriceStr =
+                    $"SELECT 금액 FROM 영화 WHERE (영화번호 = {movieNum})";
+                var commandMoviePrice = new SqlCommand(moviePriceStr, connection);
+                connection.Open();
+                using (var reader = commandMoviePrice.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        moviePrice = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        moviePrice = isLend == 1 ? moviePrice : moviePrice * 3;
+                    }
+                }
+            }
+
+            if (balance < moviePrice)
+            {
+                return RedirectToAction("AllMovies", "Home", new { result = "EXPENSIVE" });
+            }
+
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"DECLARE @NUM INT\r\nDECLARE @PRICE INT\r\nDECLARE @USER INT = {userNo}\r\nDECLARE @MOVIE INT = {movieNum}\r\nDECLARE @LIMIT DATE = DATEADD(YEAR, 100, GETDATE())\r\n\r\nSET @NUM = (SELECT count(*) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE)\r\nSET @PRICE = (SELECT 금액 FROM 영화 WHERE 영화번호=@MOVIE)\r\n\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(구매번호) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE) + 1\r\nIF ({isLend} = 1) SET @LIMIT = DATEADD(DAY, 7, GETDATE())\r\nELSE SET @PRICE = @PRICE * 3\r\nINSERT INTO 구매내역 VALUES(@USER, @MOVIE, @NUM, GETDATE(), @LIMIT)\r\n\r\nUPDATE 회원\r\nSET 보유금액 -= @PRICE\r\nWHERE 사용자번호 = @USER";
+                var command = new SqlCommand(commandStr, connection);
+                connection.Open();
+                var result = command.ExecuteNonQuery();
+
+                return RedirectToAction("AllMovies", "Home", new { result = "SUCCESS" });
             }
         }
     }
