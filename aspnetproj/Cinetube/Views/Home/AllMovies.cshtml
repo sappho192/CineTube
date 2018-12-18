@@ -100,6 +100,7 @@
                         </div>
                         @{
                             bool loggedin = false;
+                            string userNo = string.Empty;
 
                             if (Keys.Contains("ID"))
                             {
@@ -108,6 +109,7 @@
                                     if (key.Equals("Loggedin") && session.GetString(key) == "true")
                                     {
                                         loggedin = true;
+                                        userNo = session.GetString("userNo");
                                     }
                                 }
                             }
@@ -123,20 +125,63 @@
                                         <tr>
                                             <td style="text-align: center">
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
-                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호/>
-                                                    <input type="hidden" name="purchaseType" value="buy"/>
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
+                                                    <input type="hidden" name="purchaseType" value="buy" />
                                                     <button type="submit" class="btn btn-primary">구매하기</button>
                                                 </form>
                                             </td>
                                             <td style="text-align: center">
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
-                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호/>
-                                                    <input type="hidden" name="purchaseType" value="lend"/>
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
+                                                    <input type="hidden" name="purchaseType" value="lend" />
                                                     <button type="submit" class="btn btn-primary">대여하기</button>
                                                 </form>
                                             </td>
                                         </tr>
                                     </table>
+                                    <form method="post" action="/Home/NewMovieComment" name="NewMovieComment" class="form-inline">
+                                        <div class="row">
+                                            <label  class="col-xs-1 col-sm-1">평점: </label>
+                                            <input  class="col-xs-1 col-sm-3 form-control" type="number" name="grade" step="0.1" min="1.0" max="5.0">
+                                            <label  class="col-xs-1 col-sm-1">내용: </label>
+                                            <input  class="col-xs-1 col-sm-7 form-control" type="text"  name="content">
+                                            <button class="col-xs-1 col-sm-2 form-control btn btn-default" type="submit">작성</button><br/>
+                                        </div>
+                                        <input type="number" value="@movieInfo.영화번호" name="movieNum" hidden />
+                                        <input type="number" value="@userNo" name="userNo" hidden />
+                                    </form>
+                                </div>
+                            }
+                        }
+
+                        @{
+                            if (movieInfo.한줄평.Count > 0)
+                            {
+                                <div class="modal-body">
+                                    <div><h5>최근 한줄평</h5></div>
+                                    @{
+                                        foreach (var comment in movieInfo.한줄평)
+                                        {
+                                            string panelType = string.Empty;
+                                            if (comment.평점 >= 4.0)
+                                            {
+                                                panelType = "panel-success";
+                                            } else if (comment.평점 >= 3.0 && comment.평점 < 4.0)
+                                            {
+                                                panelType = "panel-info";
+                                            } else if (comment.평점 >= 2.0 && comment.평점 < 3.0)
+                                            {
+                                                panelType = "panel-warning";
+                                            } else if (comment.평점 < 2.0)
+                                            {
+                                                panelType = "panel-danger";
+                                            }
+                                            <div class="panel @panelType">
+                                                <div class="panel-heading"><b>평점: @comment.평점</b></div>
+                                                <div class="panel-body"><strong>@@@comment.아이디:</strong> @comment.내용</div>
+                                            </div>
+                                        }
+                                    }
                                 </div>
                             }
                         }
