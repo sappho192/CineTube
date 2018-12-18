@@ -25,7 +25,7 @@
     <tbody>
         @foreach (var dt in Model)
         {
-            <tr><th>@dt.articleNo</th><th>@dt.ID</th><th><a asp-area="" asp-controller="" asp-action="Article" asp-route-id="@dt.articleNo">@dt.title</a></th><th>@dt.writeTime</th></tr>
+            <tr><th>@dt.articleNo</th><th>@dt.ID</th><th><a asp-area="" asp-controller="Home" asp-action="Article" asp-route-id="@dt.articleNo">@dt.title</a></th><th>@dt.writeTime</th></tr>
         }
     </tbody>
 </table>
@@ -34,7 +34,7 @@
 <nav aria-label="Page navigation">
     <ul class="pagination">
     <li class="@prev">
-        <a asp-area="" asp-controller="" asp-action="Board" asp-route-id="1">
+        <a asp-area="" asp-controller="Home" asp-action="Board" asp-route-id="1">
             <span aria-hidden="true">&laquo;</span>
         </a>
     </li>
@@ -45,10 +45,10 @@
         {
             active = "active";
         }
-        <li class="@active"><a asp-area="" asp-controller="" asp-action="Board" asp-route-id="@i">@i</a></li>
+        <li class="@active"><a asp-area="" asp-controller="Home" asp-action="Board" asp-route-id="@i">@i</a></li>
     }
     <li class="@next">
-        <a asp-area="" asp-controller="" asp-action="Board" asp-route-id="@last">
+        <a asp-area="" asp-controller="Home" asp-action="Board" asp-route-id="@last">
             <span aria-hidden="true">&raquo;</span>
         </a>
     </li>
