@@ -128,6 +128,7 @@
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
                                                     <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
                                                     <input type="hidden" name="purchaseType" value="buy" />
+                                                    <input type="hidden" name="cameFrom" value="AllMovies" />
                                                     <button type="submit" class="btn btn-primary">구매하기</button>
                                                 </form>
                                             </td>
@@ -135,6 +136,7 @@
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
                                                     <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
                                                     <input type="hidden" name="purchaseType" value="lend" />
+                                                    <input type="hidden" name="cameFrom" value="AllMovies" />
                                                     <button type="submit" class="btn btn-primary">대여하기</button>
                                                 </form>
                                             </td>

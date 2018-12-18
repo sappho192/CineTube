@@ -3,8 +3,33 @@
 @{
     ViewData["Title"] = "Home Page";
     List<MovieInfo> recentMoviesInfo = ViewData["RecentMoviesInfo"] as List<MovieInfo>;
+    List<RecentArticle> recentArticles = ViewData["RecentArticles"] as List<RecentArticle>;
     ISession session = HttpContextAccessor.HttpContext.Session;
     IEnumerable<String> Keys = session.Keys;
+    if (ViewData["Result"] != null)
+    {
+        if (ViewData["Result"].Equals("SUCCESS"))
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>결제 성공!</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("EXPENSIVE"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>잔액 부족</strong>
+            </div>
+        }
+        else if (ViewData["Result"].Equals("ALREADY"))
+        {
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>이미 보유 중인 영화입니다</strong>
+            </div>
+        }
+    }
 }
 
 <div class="row">
@@ -100,6 +125,7 @@
                                                         <form asp-controller="Home" asp-action="Purchase" method="post">
                                                             <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
                                                             <input type="hidden" name="purchaseType" value="buy" />
+                                                            <input type="hidden" name="cameFrom" value="Index" />
                                                             <button type="submit" class="btn btn-primary">구매하기</button>
                                                         </form>
                                                     </td>
@@ -107,6 +133,7 @@
                                                         <form asp-controller="Home" asp-action="Purchase" method="post">
                                                             <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
                                                             <input type="hidden" name="purchaseType" value="lend" />
+                                                            <input type="hidden" name="cameFrom" value="Index" />
                                                             <button type="submit" class="btn btn-primary">대여하기</button>
                                                         </form>
                                                     </td>
@@ -178,12 +205,18 @@
     </div>
     <div class="col-md-3">
         <h2>자유게시판</h2>
-        <ul>
-            <li>이 영화 재밌던데</li>
-            <li>이거 언제 나옴?</li>
-            <li>제목이 기억안나는데 도와주세요</li>
-            <li>이거 뭐하는 영화임?</li>
-        </ul>
+        @{
+            System.Diagnostics.Debug.Assert(recentArticles != null, nameof(recentArticles) + " != null");
+            foreach (var recentArticle in recentArticles)
+            {
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">@@@recentArticle.ID</h3>
+                    </div>
+                    <div class="panel-body"><a asp-controller="Home" asp-action="Article" asp-route-id="@recentArticle.글번호">@recentArticle.제목</a></div>
+                </div>
+            }
+        }
     </div>
 </div>
 <!--
