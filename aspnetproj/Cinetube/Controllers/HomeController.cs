@@ -47,7 +47,23 @@ namespace Cinetube.Controllers
                         int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
                         string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
                         string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
-                        recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+
+                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
+                        {
+                            List<string> 장르들 = new List<string>();
+                            string commandMovieGenreStr =
+                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
+                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
+                            genreConnection.Open();
+                            using (var genreReader = commandMovieGenre.ExecuteReader())
+                            {
+                                while (genreReader.Read())
+                                {
+                                    장르들.Add(Convert.ToString(genreReader[0]));
+                                }
+                            }
+                            recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들));
+                        }
                     }
 
                     ViewData["RecentMoviesInfo"] = recentMoviesInfo;
@@ -84,7 +100,24 @@ namespace Cinetube.Controllers
                         int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
                         string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
                         string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
-                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독));
+
+                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
+                        {
+                            List<string> 장르들 = new List<string>();
+                            string commandMovieGenreStr =
+                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
+                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
+                            genreConnection.Open();
+                            using (var genreReader = commandMovieGenre.ExecuteReader())
+                            {
+                                while (genreReader.Read())
+                                {
+                                    장르들.Add(Convert.ToString(genreReader[0]));
+                                }
+                            }
+
+                            moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들));
+                        }
                     }
 
                     ViewData["MoviesInfo"] = moviesInfo;
