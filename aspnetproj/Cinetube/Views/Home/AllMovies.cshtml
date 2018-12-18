@@ -86,7 +86,7 @@
                                         <tr>
                                             <th style="text-align: center">@movieInfo.금액₩</th>
                                             <th style="text-align: center">@movieInfo.영화시간 분</th>
-                                            <th style="text-align: center">@movieInfo.관람제한</th>
+                                            <th style="text-align: center" colspan="2">@movieInfo.관람제한</th>
                                         </tr>
                                         <tr>
                                             <th style="text-align: center">@String.Join(", ", movieInfo.장르.ToArray())</th>
@@ -116,22 +116,25 @@
                                 <div class="modal-footer">
                                     <table class="table">
                                         <tr>
-                                            <th style="text-align: center">
+                                            <th style="text-align: center" colspan="2">
+                                                <h5>잔액: @ViewData["Balance"].ToString() ₩</h5>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align: center">
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
-                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
-                                                    <input type="hidden" name="purchaseType" value="buy" />
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호/>
+                                                    <input type="hidden" name="purchaseType" value="buy"/>
                                                     <button type="submit" class="btn btn-primary">구매하기</button>
                                                 </form>
-                                                @*<a href="#">구매하기</a>*@
-                                            </th>
-                                            <th style="text-align: center">
+                                            </td>
+                                            <td style="text-align: center">
                                                 <form asp-controller="Home" asp-action="Purchase" method="post">
-                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호 />
-                                                    <input type="hidden" name="purchaseType" value="lend" />
+                                                    <input type="hidden" name="movieNum" value=@movieInfo.영화번호/>
+                                                    <input type="hidden" name="purchaseType" value="lend"/>
                                                     <button type="submit" class="btn btn-primary">대여하기</button>
                                                 </form>
-                                                @*<a href="#">대여하기</a>*@
-                                            </th>
+                                            </td>
                                         </tr>
                                     </table>
                                 </div>
