@@ -27,7 +27,7 @@ namespace Cinetube.Controllers
             {
                 int index = 0;
                 string commandRecentPageStr =
-                    $"SELECT TOP 5 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
+                    $"SELECT TOP 3 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
 
                 var commandRecentPage = new SqlCommand(commandRecentPageStr, connection);
                 connection.Open();
