@@ -4,6 +4,7 @@
     ISession session = HttpContextAccessor.HttpContext.Session;
     IEnumerable<String> Keys = session.Keys;
     List<MovieInfo> moviesInfo = ViewData["MoviesInfo"] as List<MovieInfo>;
+    List<string> genreList = ViewData["GenreList"] as List<string>;
     if (ViewData["Result"] != null)
     {
         if (ViewData["Result"].Equals("SUCCESS"))
@@ -36,6 +37,135 @@
     필터에 맞게 검색해주는 기능 필요<br />
     pagination 구현 필요<br />
 </p>
+
+<div class="panel panel-info">
+    <div class="panel-heading"><h3>세부 검색</h3></div>
+    <div class="panel-body">
+        <div class="well" name="search-filter">
+            <form asp-controller="Home" asp-action="AllMovies" method="post">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="금액">금액: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="금액" name="금액">
+                            </div>
+                            <div class="input-group">
+                                <select class="form-control" id="금액범위" name="금액범위">
+                                    <option value="=">일치</option>
+                                    <option value=">=">이상</option>
+                                    <option value="<=">이하</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="개봉연도">개봉연도: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="개봉연도" name="개봉연도">
+
+                            </div>
+                            <div class="input-group">
+                                <select class="form-control" id="개봉연도범위" name="개봉연도범위">
+                                    <option value="">일치</option>
+                                    <option value=">=">이상</option>
+                                    <option value="<=">이하</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="장르목록">장르: </label>
+                            <div class="input-group">
+                                <input list="장르목록" class="form-control" id="장르" name="장르">
+                                <datalist id="장르목록">
+                                    @{
+                                        System.Diagnostics.Debug.Assert(genreList != null, nameof(genreList) + " != null");
+                                        foreach (string genre in genreList)
+                                        {
+                                            <option value="@genre"/>
+                                        }
+                                    }
+                                    
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="관람제한">관람제한: </label>
+                            <div class="input-group">
+                                <select class="form-control" id="관람제한" name="관람제한">
+                                    <option value=""></option>
+                                    <option value="전체관람가">전체관람가</option>
+                                    <option value="12세 이상 관람가">12세 이상 관람가</option>
+                                    <option value="15세 이상 관람가">15세 이상 관람가</option>
+                                    <option value="제한상영가">제한상영가</option>
+                                    <option value="청소년 관람불가">청소년 관람불가</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-xs-6">
+                        <div class="form-group">
+                            <label for="제목">제목: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="제목" name="제목">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                        <div class="form-group">
+                            <label for="감독">감독: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="감독" name="감독">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                        <div class="form-group">
+                            <label for="제작사">제작사: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="제작사" name="제작사">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                        <div class="form-group">
+                            <label for="줄거리">줄거리: </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="줄거리" name="줄거리">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*@{
+                    string title = null;
+                    string price = "금액 < 10000";
+                    string openYear = "개봉연도 > 1980";
+                    string story = null;
+                    string constraints = "(관람제한 = \'12세 이상 관람가\' OR 관람제한 = \'15세 이상 관람가\')";
+                    string company = null;
+                    string director = "우석";
+                }
+                <input type="hidden" value="@title" name="제목"/>
+                <input type="hidden" value="@price" name="금액"/>
+                <input type="hidden" value="@openYear" name="개봉연도"/>
+                <input type="hidden" value="@story" name="줄거리"/>
+                <input type="hidden" value="@constraints" name="관람제한들"/>
+                <input type="hidden" value="@company" name="제작사"/>
+                <input type="hidden" value="@director" name="감독"/>*@
+                <button type="submit" class="btn btn-primary">세부검색</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 @{
     const int MAX_LENGTH = 200;
