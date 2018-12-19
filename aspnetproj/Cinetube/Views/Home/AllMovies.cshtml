@@ -61,10 +61,11 @@
 <div class="page-header">
     <h1>@ViewData["Title"]</h1>
 </div>
+
 <!--pagination 구현 필요-->
 <div class="panel panel-info">
-    <div class="panel-heading"><h3>세부 검색</h3></div>
-    <div class="panel-body">
+    <div class="panel-heading" data-toggle="collapse" data-target="#searchFilterBody"><h3>세부 검색</h3></div>
+    <div class="panel-body collapse" id="searchFilterBody">
         <div class="well" name="search-filter">
             <form asp-controller="Home" asp-action="AllMovies" method="post">
                 <div class="row">
@@ -196,7 +197,7 @@
                 <div class="col-md-4">
                     <div class="panel panel-info">
                         <div class="panel-heading">
-                            <h3 class="panel-title">@movieInfo.제목</h3>
+                            <h3 class="panel-title"><a href="#" class="btn-block" data-toggle="modal" data-target="#movieModal@(index.ToString())" data-backdrop="true">@movieInfo.제목</a></h3>
                         </div>
                         <div class="panel-body">
                             @if (@movieInfo.줄거리.Length < MAX_LENGTH)
@@ -219,7 +220,7 @@
                             </tr>
                         </table>
                         <div class="panel-footer" style="text-align: center">
-                            <a href="#" data-toggle="modal" data-target="#movieModal@(index.ToString())" data-backdrop="true">영화 세부정보</a>
+                            <a href="#" class="btn-block" data-toggle="modal" data-target="#movieModal@(index.ToString())" data-backdrop="true">영화 세부정보</a>
                         </div>
                         <div class="modal" id="movieModal@(index.ToString())" tabindex="-1" role="dialog" aria-labelledby="movieModal@(index.ToString())" aria-hidden="true">
                             <div class="modal-dialog">
