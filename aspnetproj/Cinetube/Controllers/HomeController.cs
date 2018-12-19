@@ -165,6 +165,7 @@ namespace Cinetube.Controllers
             }
 
             ViewData["Title"] = "영화는 역시 Cinetube!";
+            ViewData["CurrentAction"] = "Index";
             return View();
         }
 
@@ -295,6 +296,7 @@ namespace Cinetube.Controllers
             }
 
             ViewData["Title"] = "영화 찾기";
+            ViewData["CurrentAction"] = "AllMovies";
             return View();
         }
 
@@ -392,6 +394,7 @@ namespace Cinetube.Controllers
                 }
             }
             ViewData["Title"] = "영화 찾기";
+            ViewData["CurrentAction"] = "AllMovies";
             return View();
         }
 
@@ -553,6 +556,7 @@ namespace Cinetube.Controllers
 
         public IActionResult Privacy()
         {
+            ViewData["CurrentAction"] = "Privacy";
             return View();
         }
 
@@ -564,16 +568,18 @@ namespace Cinetube.Controllers
 
         public IActionResult Login()
         {
+            ViewData["CurrentAction"] = "Login";
             return View();
         }
 
-        public IActionResult Authenticate(string ID, string PW)
+        public IActionResult Authenticate(string ID, string PW, string cameFrom, int cameFromSub)
         {
             string temp_ID = ID;
             string temp_PW = PW;
             if (ID == null || PW == null)
             {
-                return RedirectToAction("Index", "Home");
+                string result = "NOID";
+                return RedirectToAction2(cameFrom, cameFromSub, result);
             }
 
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
@@ -596,12 +602,36 @@ namespace Cinetube.Controllers
                             session.SetString("Loggedin", "true");
                             session.SetString("SessionID", Guid.NewGuid().ToString());
                             Console.WriteLine($"ID correct: {id}, PW correct: {pw}, userno: {userno}");
+                        } else if (id >= 1 && pw != 1)
+                        {
+                            return RedirectToAction2(cameFrom, cameFromSub, "WRONGPW");
+                        } else if (id == 0)
+                        {
+                            return RedirectToAction2(cameFrom, cameFromSub, "NOID");
                         }
                     }
                 }
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        private IActionResult RedirectToAction2(string cameFrom, int cameFromSub, string result)
+        {
+            if (cameFromSub == 0)
+            {
+                return RedirectToAction(cameFrom, "Home", new {result});
+            }
+
+            switch (cameFrom)
+            {
+                case "Article":
+                    return RedirectToAction(cameFrom, new {articleNo = cameFromSub, result});
+                case "Board":
+                    return RedirectToAction(cameFrom, new { pageNum = cameFromSub, result });
+                default:
+                    return Index(result);
+            }
         }
 
         public IActionResult Logout()
@@ -611,15 +641,24 @@ namespace Cinetube.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        public IActionResult Board()
+        public IActionResult Board(string result = null)
         {
-            return Board(1);
+            return Board(1, result);
         }
 
         [Route("Home/[action]/{pageNum}")]
         [HttpGet]
-        public IActionResult Board(int pageNum)
+        public IActionResult Board(int pageNum, string result = null)
         {
+            if (result != null)
+            {
+                ViewData["Result"] = result;
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+
             var list = new List<BoardModel>();
             int total = 0;
             int last_page = 0;
@@ -663,12 +702,15 @@ namespace Cinetube.Controllers
                 }
             }
 
+            ViewData["CurrentAction"] = "Board";
+            ViewData["CurrentSubActionID"] = pageNum;
+            ViewData["Result"] = result;
             return View(list);
         }
 
         [Route("Home/[action]/{articleNo}")]
         [HttpGet]
-        public IActionResult Article(int articleNo)
+        public IActionResult Article(int articleNo, string result = null)
         {
             var list = new List<SubarticleModel>();
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
@@ -705,11 +747,15 @@ namespace Cinetube.Controllers
                 }
             }
 
+            ViewData["CurrentAction"] = "Article";
+            ViewData["CurrentSubActionID"] = articleNo;
+            ViewData["Result"] = result;
             return View(list);
         }
 
         public IActionResult NewArticle()
         {
+            ViewData["CurrentAction"] = "NewArticle";
             return View();
         }
 
@@ -843,6 +889,7 @@ namespace Cinetube.Controllers
             }
 
             ViewData["Title"] = "내 정보";
+            ViewData["CurrentAction"] = "MyPage";
             return View();
         }
 
@@ -904,6 +951,7 @@ namespace Cinetube.Controllers
             }
 
             ViewData["Title"] = "내 영화";
+            ViewData["CurrentAction"] = "MyMovies";
             return View();
         }
 
@@ -945,6 +993,7 @@ namespace Cinetube.Controllers
 
 
             ViewData["Title"] = "충전";
+            ViewData["CurrentAction"] = "Charge";
             return View();
         }
 
@@ -1079,6 +1128,7 @@ namespace Cinetube.Controllers
                 }
             }
 
+            ViewData["CurrentAction"] = "Movie";
             return View();
         }
 
