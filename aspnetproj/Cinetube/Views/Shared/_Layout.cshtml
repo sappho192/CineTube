@@ -39,6 +39,7 @@
             <div class="navbar-collapse collapse">
                 <ulk class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="AllMovies">영화 찾기</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Board">자유게시판</a></li>
                     @{
                         bool loggedin = false;
 
@@ -57,7 +58,6 @@
                         {
                             <li><a asp-area="" asp-controller="Home" asp-action="MyPage">내 정보(@myID)</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="MyMovies">내 영화</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Board">자유게시판</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Charge">충전</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Logout">로그아웃</a></li>
                         }
