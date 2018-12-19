@@ -1,7 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
-    ViewData["Title"] = "Home Page";
     List<MovieInfo> recentMoviesInfo = ViewData["RecentMoviesInfo"] as List<MovieInfo>;
     List<MovieInfo> popularMoviesInfo = ViewData["PopularMoviesInfo"] as List<MovieInfo>;
     List<RecentArticle> recentArticles = ViewData["RecentArticles"] as List<RecentArticle>;
@@ -30,9 +29,16 @@
                 <strong>이미 보유 중인 영화입니다</strong>
             </div>
         }
+        else if (ViewData["Result"].Equals("NOTLOGIN"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>로그인 하세요.</strong>
+            </div>
+        }
     }
 }
-
+<div class="page-header"><h1>@ViewData["Title"]</h1></div>
 <div class="row">
     <div class="col-md-3">
         <h2>최신 영화</h2>

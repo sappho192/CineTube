@@ -1,7 +1,7 @@
 ﻿@{
     List<AvailableMovie> availableMovies = ViewData["AvailableMovies"] as List<AvailableMovie>;
 }
-<h2>@ViewData["Title"]</h2>
+<div class="page-header"><h1>@ViewData["Title"]</h1></div>
 <div class="list-group">
     <h3 class="h3">시청 가능한 영화</h3>
     @{
@@ -9,7 +9,7 @@
         foreach (var availableMovie in availableMovies)
         {
             <div class="list-group-item">
-                <h4 class="list-group-item-heading">@availableMovie.제목</h4>
+                <h4 class="list-group-item-heading"><a asp-controller="Home" asp-action="Movie" asp-route-id="@availableMovie.영화번호">@availableMovie.제목</a></h4>
                 <p class="list-group-item-text">누적 구매횟수: @Convert.ToString(availableMovie.구매번호 + 1)</p>
                 <p class="list-group-item-text">구매시각: @availableMovie.구매시각</p>
                 <p class="list-group-item-text">구매만료일자: @availableMovie.만료일자</p>
