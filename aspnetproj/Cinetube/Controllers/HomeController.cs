@@ -85,50 +85,11 @@ namespace Cinetube.Controllers
 
                         // 해당 영화의 장르 긁어오기
                         List<string> 장르들 = new List<string>();
-                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieGenreStr =
-                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
-                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
-                            genreConnection.Open();
-                            using (var genreReader = commandMovieGenre.ExecuteReader())
-                            {
-                                while (genreReader.Read())
-                                {
-                                    장르들.Add(Convert.ToString(genreReader[0]));
-                                }
-                            }
-
-                        }
+                        GetGenres(영화번호, 장르들);
 
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
-                        using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieCommentStr =
-                                $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
-                            var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
-                            commentConnection.Open();
-                            using (var commentReader = commandMovieComment.ExecuteReader())
-                            {
-                                //사용자번호,ID,한줄평내용,평점,작성시각
-                                while (commentReader.Read())
-                                {
-                                    int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
-                                    string 아이디 = commentReader[1] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[1]);
-                                    string 내용 = commentReader[2] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[2]);
-                                    float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
-                                    string 작성시각 = commentReader[4] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[4]);
-                                    한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
-                                }
-                            }
-                        }
+                        GetMovieComments(영화번호, 한줄평들);
 
                         recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
                             장르들, 한줄평들));
@@ -188,50 +149,11 @@ namespace Cinetube.Controllers
 
                         // 해당 영화의 장르 긁어오기
                         List<string> 장르들 = new List<string>();
-                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieGenreStr =
-                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
-                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
-                            genreConnection.Open();
-                            using (var genreReader = commandMovieGenre.ExecuteReader())
-                            {
-                                while (genreReader.Read())
-                                {
-                                    장르들.Add(Convert.ToString(genreReader[0]));
-                                }
-                            }
-
-                        }
+                        GetGenres(영화번호, 장르들);
 
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
-                        using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieCommentStr =
-                                $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
-                            var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
-                            commentConnection.Open();
-                            using (var commentReader = commandMovieComment.ExecuteReader())
-                            {
-                                //사용자번호,ID,한줄평내용,평점,작성시각
-                                while (commentReader.Read())
-                                {
-                                    int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
-                                    string 아이디 = commentReader[1] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[1]);
-                                    string 내용 = commentReader[2] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[2]);
-                                    float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
-                                    string 작성시각 = commentReader[4] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[4]);
-                                    한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
-                                }
-                            }
-                        }
+                        GetMovieComments(영화번호, 한줄평들);
 
                         popularMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
                             장르들, 한줄평들));
@@ -243,6 +165,54 @@ namespace Cinetube.Controllers
 
             ViewData["Title"] = "영화는 역시 Cinetube!";
             return View();
+        }
+
+        private static void GetMovieComments(int 영화번호, List<MovieComment> 한줄평들)
+        {
+            using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandMovieCommentStr =
+                    $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
+                var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
+                commentConnection.Open();
+                using (var commentReader = commandMovieComment.ExecuteReader())
+                {
+                    //사용자번호,ID,한줄평내용,평점,작성시각
+                    while (commentReader.Read())
+                    {
+                        int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
+                        string 아이디 = commentReader[1] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[1]);
+                        string 내용 = commentReader[2] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[2]);
+                        float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
+                        string 작성시각 = commentReader[4] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[4]);
+                        한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
+                    }
+                }
+            }
+        }
+
+        private static void GetGenres(int 영화번호, List<string> 장르들)
+        {
+            using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandMovieGenreStr =
+                    $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
+                var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
+                genreConnection.Open();
+                using (var genreReader = commandMovieGenre.ExecuteReader())
+                {
+                    while (genreReader.Read())
+                    {
+                        장르들.Add(Convert.ToString(genreReader[0]));
+                    }
+                }
+            }
         }
 
         public IActionResult AllMovies(string result = null)
@@ -307,44 +277,11 @@ namespace Cinetube.Controllers
 
                         // 해당 영화의 장르 긁어오기
                         List<string> 장르들 = new List<string>();
-                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieGenreStr =
-                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
-                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
-                            genreConnection.Open();
-                            using (var genreReader = commandMovieGenre.ExecuteReader())
-                            {
-                                while (genreReader.Read())
-                                {
-                                    장르들.Add(Convert.ToString(genreReader[0]));
-                                }
-                            }
-
-                        }
+                        GetGenres(영화번호, 장르들);
 
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
-                        using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieCommentStr =
-                                $"SELECT TOP 5 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호} ORDER BY 작성시각 DESC";
-                            var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
-                            commentConnection.Open();
-                            using (var commentReader = commandMovieComment.ExecuteReader())
-                            {
-                                //사용자번호,ID,한줄평내용,평점,작성시각
-                                while (commentReader.Read())
-                                {
-                                    int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
-                                    string 아이디 = commentReader[1] is DBNull ? string.Empty : Convert.ToString(commentReader[1]);
-                                    string 내용 = commentReader[2] is DBNull ? string.Empty : Convert.ToString(commentReader[2]);
-                                    float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
-                                    string 작성시각 = commentReader[4] is DBNull ? string.Empty : Convert.ToString(commentReader[4]);
-                                    한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
-                                }
-                            }
-                        }
+                        GetMovieComments(영화번호, 한줄평들);
                         moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들, 한줄평들));
                     }
 
