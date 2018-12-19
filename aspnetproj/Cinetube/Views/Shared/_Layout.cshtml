@@ -73,6 +73,10 @@
                             <li><a asp-area="" asp-controller="Home" asp-action="MyMovies">내 영화</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Charge">충전</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Logout">로그아웃</a></li>
+                            if (session.GetString("admin").Equals("1"))
+                            {
+                                <li><a asp-area="" asp-controller="Home" asp-action="Admin">관리자</a></li>
+                            }
                         }
                         else
                         {

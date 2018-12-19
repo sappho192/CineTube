@@ -700,6 +700,36 @@ namespace Cinetube.Controllers
             return View();
         }
 
+        public IActionResult Admin()
+        {
+            var list = new List<UserInfo>();
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                var command = new SqlCommand("SELECT ID, 이름, 생년월일, 핸드폰번호, 보유금액 FROM 사용자, 회원 WHERE 사용자.사용자번호=회원.사용자번호 ORDER BY 회원.사용자번호 DESC", connection);
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var temp = new UserInfo
+                        (
+                            Convert.ToString(reader[0]),
+                            Convert.ToString(reader[1]),
+                            Convert.ToString(reader[2]),
+                            Convert.ToString(reader[3]),
+                            Convert.ToInt32(reader[4])
+                        );
+
+                        Console.WriteLine(temp.생년월일);
+                        list.Add(temp);
+                    }
+                }
+            }
+            
+            return View(list);
+        }
+
         public IActionResult Authenticate(string ID, string PW, string cameFrom, int cameFromSub)
         {
             string temp_ID = ID;
@@ -730,6 +760,10 @@ namespace Cinetube.Controllers
                             session.SetString("Loggedin", "true");
                             session.SetString("SessionID", Guid.NewGuid().ToString());
                             Console.WriteLine($"ID correct: {id}, PW correct: {pw}, userno: {userno}");
+                            if (id == 2)
+                                session.SetString("admin", "1");
+                            else
+                                session.SetString("admin", "0");
                         } else if (id >= 1 && pw != 1)
                         {
                             return RedirectToAction2(cameFrom, cameFromSub, "WRONGPW");

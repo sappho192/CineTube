@@ -11,11 +11,11 @@
             보유금액 = balance;
         }
 
-        public string ID { get; }
-        public string 이름 { get; }
-        public string 생년월일 { get; }
-        public string 핸드폰번호 { get; }
+        public string ID { get; set; }
+        public string 이름 { get; set; }
+        public string 생년월일 { get; set; }
+        public string 핸드폰번호 { get; set; }
 
-        public int 보유금액 { get; }
+        public int 보유금액 { get; set; }
     }
 }

@@ -1,0 +1,14 @@
+﻿<h2>Admin</h2>
+<hr />
+<table class="table">
+    <thead>
+        <tr><th>ID</th><th>이름</th><th>생년월일</th><th>핸드폰번호</th><th>보유금액</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var dt in Model)
+        {
+            <tr><th>@dt.ID</th><th>@dt.이름</th><th>@dt.생년월일</th><th>@dt.핸드폰번호</th><th>@dt.보유금액</th></tr>
+        }
+    </tbody>
+</table>
+<hr />
