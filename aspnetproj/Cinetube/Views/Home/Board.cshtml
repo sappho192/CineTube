@@ -23,6 +23,13 @@
                 <strong>비밀번호가 틀렸습니다.</strong>
             </div>
         }
+        else if (ViewData["Result"].Equals("IDEXIST"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>아이디가 이미 존재합니다.</strong>
+            </div>
+        }
     }
 
     string prev = "";
