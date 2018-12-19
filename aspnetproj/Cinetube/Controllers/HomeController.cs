@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
 using Cinetube.Models;
 using Microsoft.AspNetCore.Http;
@@ -898,6 +899,15 @@ namespace Cinetube.Controllers
             }
 
             return View();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private string GetCurrentMethod()
+        {
+            var st = new StackTrace();
+            var sf = st.GetFrame(1);
+
+            return sf.GetMethod().Name;
         }
     }
 }
