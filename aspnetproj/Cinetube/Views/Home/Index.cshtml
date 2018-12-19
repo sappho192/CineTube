@@ -85,7 +85,18 @@
                                 </div>
                                 <div class="modal-body">
                                     <ul>
-                                        <li>@movieInfo.줄거리</li>
+                                        <li>줄거리<br />@movieInfo.줄거리</li>
+                                        <li>
+                                            <label>예고편</label><br />
+                                            <div class="well">
+                                                @{
+                                                    string teaserLink = $"https://cinetubecdn.blob.core.windows.net/files/{movieInfo.예고편경로}";
+                                                }
+                                                <video controls="controls" src="@teaserLink" style="width: 100%">
+                                                    Your browser does not support the HTML5 Video element.
+                                                </video>
+                                            </div>
+                                        </li>
                                         <li>
                                             <table class="table">
                                                 <tr>
@@ -246,7 +257,17 @@
                                 </div>
                                 <div class="modal-body">
                                     <ul>
-                                        <li>@movieInfo.줄거리</li>
+                                        <li>줄거리<br/>@movieInfo.줄거리</li>
+                                        <li><label>예고편</label><br/>
+                                            <div class="well">
+                                                @{
+                                                    string teaserLink = $"https://cinetubecdn.blob.core.windows.net/files/{movieInfo.예고편경로}";
+                                                }
+                                                <video controls="controls" src="@teaserLink" style="width: 100%">
+                                                    Your browser does not support the HTML5 Video element.
+                                                </video>
+                                            </div>
+                                        </li>
                                         <li>
                                             <table class="table">
                                                 <tr>
