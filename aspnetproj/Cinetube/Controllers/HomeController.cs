@@ -27,7 +27,6 @@ namespace Cinetube.Controllers
         {
             if (result != null)
             {
-                Console.WriteLine($"구매 결과: {result}");
                 ViewData["Result"] = result;
             }
             else
@@ -906,11 +905,25 @@ namespace Cinetube.Controllers
             return RedirectToAction("Article", "Home", new { id = articleNo });
         }
 
-        public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns)
+        public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns, string cameFrom)
         {
             if (ID == null || PW == null || name == null || birth == null || ssn == null || phone == null || PWAns == null)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(cameFrom, "Home", new {result = "NOID"});
+            }
+
+            // 이미 있는 ID인지 확인
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                var command = new SqlCommand($"SELECT ID FROM 사용자 WHERE ID = \'{ID}\'", connection);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return RedirectToAction2(cameFrom, 0, "IDEXIST");
+                    }
+                }
             }
 
             if (GlobalVariables.PhoneRegex.Match(phone).Success)

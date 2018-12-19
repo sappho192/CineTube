@@ -50,6 +50,13 @@
                 <strong>비밀번호가 틀렸습니다.</strong>
             </div>
         }
+        else if (ViewData["Result"].Equals("IDEXIST"))
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>아이디가 이미 존재합니다.</strong>
+            </div>
+        }
     }
 }
 <div class="page-header"><h1>@ViewData["Title"]</h1></div>
@@ -136,7 +143,7 @@
                                                                 <span>출연:</span>
                                                                 foreach (var 배우 in movieInfo.배우)
                                                                 {
-                                                                <span>@배우.이름 </span>
+                                                                    <span>@배우.이름 </span>
                                                                 }
                                                             }
                                                         }
@@ -290,7 +297,8 @@
                                 <div class="modal-body">
                                     <ul>
                                         <li><label>줄거리</label><br />@movieInfo.줄거리</li>
-                                        <li><label>예고편</label><br/>
+                                        <li>
+                                            <label>예고편</label><br />
                                             <div class="well">
                                                 @{
                                                     string teaserLink = $"https://cinetubecdn.blob.core.windows.net/files/{movieInfo.예고편경로}";
