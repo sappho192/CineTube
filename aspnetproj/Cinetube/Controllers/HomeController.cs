@@ -27,7 +27,6 @@ namespace Cinetube.Controllers
         {
             if (result != null)
             {
-                Console.WriteLine($"구매 결과: {result}");
                 ViewData["Result"] = result;
             }
             else
@@ -651,11 +650,29 @@ namespace Cinetube.Controllers
         {
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
-                string commandNewCommentStr =
-                    $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
-                var command = new SqlCommand(commandNewCommentStr, connection);
+                string commandNewCommentStr1 =
+                    $"select count(*) from 한줄평 where 영화번호={movieNum} and 사용자번호={userNo};";
+                var command1 = new SqlCommand(commandNewCommentStr1, connection);
                 connection.Open();
-                command.ExecuteReader();
+
+                bool isAlready = false;
+                using (var reader = command1.ExecuteReader())
+                {
+                    if (reader[0] is DBNull)
+                        isAlready = true;
+                }
+
+                if (isAlready)
+                {
+                    // 이 경우는 한줄평 못 다는 경우
+                }
+                else
+                {
+                    string commandNewCommentStr =
+                        $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
+                    var command = new SqlCommand(commandNewCommentStr, connection);
+                    command.ExecuteReader();
+                }
             }
 
             return RedirectToAction("AllMovies", "Home");
@@ -906,11 +923,25 @@ namespace Cinetube.Controllers
             return RedirectToAction("Article", "Home", new { id = articleNo });
         }
 
-        public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns)
+        public IActionResult SignUp(string ID, string PW, string name, string birth, string ssn, string phone, int PWHintNo, string PWAns, string cameFrom)
         {
             if (ID == null || PW == null || name == null || birth == null || ssn == null || phone == null || PWAns == null)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(cameFrom, "Home", new {result = "NOID"});
+            }
+
+            // 이미 있는 ID인지 확인
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                var command = new SqlCommand($"SELECT ID FROM 사용자 WHERE ID = \'{ID}\'", connection);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return RedirectToAction2(cameFrom, 0, "IDEXIST");
+                    }
+                }
             }
 
             if (GlobalVariables.PhoneRegex.Match(phone).Success)
