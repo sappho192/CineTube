@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Cinetube.Models;
 using Microsoft.AspNetCore.Http;
@@ -55,13 +57,13 @@ namespace Cinetube.Controllers
                 ViewData["Balance"] = balance;
             }
 
+            // 최근 영화 긁어오기
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 int index = 0;
                 string commandRecentPageStr =
                     $"SELECT TOP 3 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
 
-                // 최근 영화 긁어오기
                 var commandRecentPage = new SqlCommand(commandRecentPageStr, connection);
                 connection.Open();
                 using (var reader = commandRecentPage.ExecuteReader())
@@ -84,50 +86,11 @@ namespace Cinetube.Controllers
 
                         // 해당 영화의 장르 긁어오기
                         List<string> 장르들 = new List<string>();
-                        using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieGenreStr =
-                                $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
-                            var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
-                            genreConnection.Open();
-                            using (var genreReader = commandMovieGenre.ExecuteReader())
-                            {
-                                while (genreReader.Read())
-                                {
-                                    장르들.Add(Convert.ToString(genreReader[0]));
-                                }
-                            }
-
-                        }
+                        GetGenres(영화번호, 장르들);
 
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
-                        using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                        {
-                            string commandMovieCommentStr =
-                                $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
-                            var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
-                            commentConnection.Open();
-                            using (var commentReader = commandMovieComment.ExecuteReader())
-                            {
-                                //사용자번호,ID,한줄평내용,평점,작성시각
-                                while (commentReader.Read())
-                                {
-                                    int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
-                                    string 아이디 = commentReader[1] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[1]);
-                                    string 내용 = commentReader[2] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[2]);
-                                    float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
-                                    string 작성시각 = commentReader[4] is DBNull
-                                        ? string.Empty
-                                        : Convert.ToString(commentReader[4]);
-                                    한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
-                                }
-                            }
-                        }
+                        GetMovieComments(영화번호, 한줄평들);
 
                         recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
                             장르들, 한줄평들));
@@ -155,143 +118,443 @@ namespace Cinetube.Controllers
                         int 글번호 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
                         recentArticles.Add(new RecentArticle(ID, 제목, 글번호));
                     }
-
                     ViewData["RecentArticles"] = recentArticles;
                 }
+            }
 
-                return View();
+            // 인기 영화 3개까지 긁어오기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandPopularMoviesStr =
+                    "SELECT TOP (3) 구매내역.영화번호, 제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독, COUNT(1) AS \'구매횟수\'\r\n FROM 구매내역\r\n INNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호\r\n GROUP BY 구매내역.영화번호, 제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\n  ORDER BY 구매횟수 DESC";
+
+                var commandPopularMovies = new SqlCommand(commandPopularMoviesStr, connection);
+                connection.Open();
+                using (var reader = commandPopularMovies.ExecuteReader())
+                {
+                    List<MovieInfo> popularMoviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+
+                        // 해당 영화의 장르 긁어오기
+                        List<string> 장르들 = new List<string>();
+                        GetGenres(영화번호, 장르들);
+
+                        // 해당 영화의 한줄평 긁어오기
+                        List<MovieComment> 한줄평들 = new List<MovieComment>();
+                        GetMovieComments(영화번호, 한줄평들);
+
+                        popularMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
+                            장르들, 한줄평들));
+                    }
+
+                    ViewData["PopularMoviesInfo"] = popularMoviesInfo;
+                }
+            }
+
+            ViewData["Title"] = "영화는 역시 Cinetube!";
+            return View();
+        }
+
+        private static void GetMovieComments(int 영화번호, List<MovieComment> 한줄평들)
+        {
+            using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandMovieCommentStr =
+                    $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
+                var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
+                commentConnection.Open();
+                using (var commentReader = commandMovieComment.ExecuteReader())
+                {
+                    //사용자번호,ID,한줄평내용,평점,작성시각
+                    while (commentReader.Read())
+                    {
+                        int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
+                        string 아이디 = commentReader[1] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[1]);
+                        string 내용 = commentReader[2] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[2]);
+                        float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
+                        string 작성시각 = commentReader[4] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(commentReader[4]);
+                        한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
+                    }
+                }
+            }
+        }
+
+        private static void GetGenres(int 영화번호, List<string> 장르들)
+        {
+            using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandMovieGenreStr =
+                    $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
+                var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
+                genreConnection.Open();
+                using (var genreReader = commandMovieGenre.ExecuteReader())
+                {
+                    while (genreReader.Read())
+                    {
+                        장르들.Add(Convert.ToString(genreReader[0]));
+                    }
+                }
             }
         }
 
         public IActionResult AllMovies(string result = null)
+        {
+            if (result != null)
             {
-                if (result != null)
-                {
-                    Console.WriteLine($"구매 결과: {result}");
-                    ViewData["Result"] = result;
-                }
-                else
-                {
-                    ViewData["Result"] = null;
-                }
-                // 잔액확인하기
-                if (session.Keys.Contains("Loggedin"))
-                {
-                    string userNo = getCurrentUserNo();
-                    int balance = 0;
-                    using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
-                    {
-                        string balanceStr =
-                            $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
-                        var commandBalanceInfo = new SqlCommand(balanceStr, connection);
-                        connection.Open();
-                        using (var reader = commandBalanceInfo.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                balance = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
-                            }
-                        }
-                    }
-
-                    ViewData["Balance"] = balance;
-                }
-
-                // 최근 영화 긁어오기
+                Console.WriteLine($"구매 결과: {result}");
+                ViewData["Result"] = result;
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+            // 잔액확인하기
+            if (session.Keys.Contains("Loggedin"))
+            {
+                string userNo = getCurrentUserNo();
+                int balance = 0;
                 using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
                 {
-                    int index = 0;
-                    string commandGeneralPageStr =
-                        $"SELECT TOP 10 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
-                    var commandGeneralPage = new SqlCommand(commandGeneralPageStr, connection);
+                    string balanceStr =
+                        $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
+                    var commandBalanceInfo = new SqlCommand(balanceStr, connection);
                     connection.Open();
-                    using (var reader = commandGeneralPage.ExecuteReader())
+                    using (var reader = commandBalanceInfo.ExecuteReader())
                     {
-                        List<MovieInfo> moviesInfo = new List<MovieInfo>();
                         while (reader.Read())
                         {
-                            // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
-                            int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
-                            string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
-                            int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
-                            string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
-                            string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
-                            int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
-                            string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
-                            string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
-                            int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
-                            string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
-                            string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
-
-                            // 해당 영화의 장르 긁어오기
-                            List<string> 장르들 = new List<string>();
-                            using (var genreConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                            {
-                                string commandMovieGenreStr =
-                                    $"SELECT 장르　FROM 장르들　WHERE 영화번호 = {영화번호}";
-                                var commandMovieGenre = new SqlCommand(commandMovieGenreStr, genreConnection);
-                                genreConnection.Open();
-                                using (var genreReader = commandMovieGenre.ExecuteReader())
-                                {
-                                    while (genreReader.Read())
-                                    {
-                                        장르들.Add(Convert.ToString(genreReader[0]));
-                                    }
-                                }
-
-                            }
-
-                            // 해당 영화의 한줄평 긁어오기
-                            List<MovieComment> 한줄평들 = new List<MovieComment>();
-                            using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
-                            {
-                                string commandMovieCommentStr =
-                                    $"SELECT TOP 5 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호} ORDER BY 작성시각 DESC";
-                                var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
-                                commentConnection.Open();
-                                using (var commentReader = commandMovieComment.ExecuteReader())
-                                {
-                                    //사용자번호,ID,한줄평내용,평점,작성시각
-                                    while (commentReader.Read())
-                                    {
-                                        int 사용자번호 = commentReader[0] is DBNull ? 0 : Convert.ToInt32(commentReader[0]);
-                                        string 아이디 = commentReader[1] is DBNull ? string.Empty : Convert.ToString(commentReader[1]);
-                                        string 내용 = commentReader[2] is DBNull ? string.Empty : Convert.ToString(commentReader[2]);
-                                        float 평점 = commentReader[3] is DBNull ? 0 : Convert.ToSingle(commentReader[3]);
-                                        string 작성시각 = commentReader[4] is DBNull ? string.Empty : Convert.ToString(commentReader[4]);
-                                        한줄평들.Add(new MovieComment(사용자번호, 아이디, 내용, 평점, 작성시각));
-                                    }
-                                }
-                            }
-                            moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들, 한줄평들));
+                            balance = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
                         }
-
-                        ViewData["MoviesInfo"] = moviesInfo;
                     }
                 }
 
-                ViewData["Title"] = "영화 찾기";
-                return View();
+                ViewData["Balance"] = balance;
             }
 
-            public IActionResult NewMovieComment(string content, int userNo, int movieNum, float grade)
+            // 영화 장르 긁어오기
+            List<string> genres = GetGenreList();
+            ViewData["GenreList"] = genres;
+
+            // 최근 영화 긁어오기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
+                int index = 0;
+                string commandGeneralPageStr =
+                    $"SELECT TOP 10 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
+                var commandGeneralPage = new SqlCommand(commandGeneralPageStr, connection);
+                connection.Open();
+                using (var reader = commandGeneralPage.ExecuteReader())
+                {
+                    List<MovieInfo> moviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int 영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int 금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string 예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string 영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int 개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string 줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string 관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int 영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string 제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string 감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+
+                        // 해당 영화의 장르 긁어오기
+                        List<string> 장르들 = new List<string>();
+                        GetGenres(영화번호, 장르들);
+
+                        // 해당 영화의 한줄평 긁어오기
+                        List<MovieComment> 한줄평들 = new List<MovieComment>();
+                        GetMovieComments(영화번호, 한줄평들);
+                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들, 한줄평들));
+                    }
+
+                    ViewData["MoviesInfo"] = moviesInfo;
+                }
+            }
+
+            ViewData["Title"] = "영화 찾기";
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AllMovies(string 금액, string 금액범위, string 개봉연도, string 개봉연도범위,
+            string 제목, string 줄거리, string 관람제한, string 제작사, string 감독, string 장르, string result = null)
+        {
+            if (result != null)
+            {
+                Console.WriteLine($"구매 결과: {result}");
+                ViewData["Result"] = result;
+            }
+            else
+            {
+                ViewData["Result"] = null;
+            }
+            // 잔액확인하기
+            if (session.Keys.Contains("Loggedin"))
+            {
+                string userNo = getCurrentUserNo();
+                int balance = 0;
                 using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
                 {
-                    string commandNewCommentStr =
-                        $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
-                    var command = new SqlCommand(commandNewCommentStr, connection);
+                    string balanceStr =
+                        $"SELECT 보유금액 FROM 회원 WHERE (사용자번호 = {userNo})";
+                    var commandBalanceInfo = new SqlCommand(balanceStr, connection);
                     connection.Open();
-                    command.ExecuteReader();
+                    using (var reader = commandBalanceInfo.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            balance = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        }
+                    }
                 }
 
+                ViewData["Balance"] = balance;
+            }
+
+            // 영화 장르 긁어오기
+            List<string> genres = GetGenreList();
+            ViewData["GenreList"] = genres;
+
+            // null이 아닌 검색조건들을 보관
+            Dictionary<string, object> searchFilter = new Dictionary<string, object>();
+            if (제목 != null) { searchFilter.Add(nameof(제목), 제목); }
+            if (금액 != null) { searchFilter.Add(nameof(금액), 금액); }
+            if (개봉연도 != null) { searchFilter.Add(nameof(개봉연도), 개봉연도); }
+            if (줄거리 != null) { searchFilter.Add(nameof(줄거리), 줄거리); }
+            if (관람제한 != null) { searchFilter.Add(nameof(관람제한), 관람제한); }
+            if (제작사 != null) { searchFilter.Add(nameof(제작사), 제작사); }
+            if (감독 != null) { searchFilter.Add(nameof(감독), 감독); }
+            if (장르 != null) { searchFilter.Add(nameof(장르), 장르); }
+            if (searchFilter.Count == 0)
+            {
                 return RedirectToAction("AllMovies", "Home");
             }
 
-            public IActionResult Privacy()
+            string query = makeSearchQueryString(searchFilter, 금액범위, 개봉연도범위);
+            // 검색 조건에 맞는 영화 긁어오기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
-                return View();
+                int index = 0;
+                var commandFilteredPage = new SqlCommand(query, connection);
+                connection.Open();
+                using (var reader = commandFilteredPage.ExecuteReader())
+                {
+                    List<MovieInfo> moviesInfo = new List<MovieInfo>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        int _영화번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string _제목 = reader[1] is DBNull ? string.Empty : Convert.ToString(reader[1]);
+                        int _금액 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
+                        string _예고편경로 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
+                        string _영화경로 = reader[4] is DBNull ? String.Empty : Convert.ToString(reader[4]);
+                        int _개봉연도 = reader[5] is DBNull ? 0 : Convert.ToInt32(reader[5]);
+                        string _줄거리 = reader[6] is DBNull ? String.Empty : Convert.ToString(reader[6]);
+                        string _관람제한 = reader[7] is DBNull ? String.Empty : Convert.ToString(reader[7]);
+                        int _영화시간 = reader[8] is DBNull ? 0 : Convert.ToInt32(reader[8]);
+                        string _제작사 = reader[9] is DBNull ? String.Empty : Convert.ToString(reader[9]);
+                        string _감독 = reader[10] is DBNull ? String.Empty : Convert.ToString(reader[10]);
+
+                        // 해당 영화의 장르 긁어오기
+                        List<string> 장르들 = new List<string>();
+                        GetGenres(_영화번호, 장르들);
+
+                        // 해당 영화의 한줄평 긁어오기
+                        List<MovieComment> 한줄평들 = new List<MovieComment>();
+                        GetMovieComments(_영화번호, 한줄평들);
+                        moviesInfo.Add(new MovieInfo(_영화번호, _제목, _금액, _예고편경로, _영화경로, _개봉연도, _줄거리, _관람제한, _영화시간, _제작사, _감독, 장르들, 한줄평들));
+                    }
+
+                    ViewData["MoviesInfo"] = moviesInfo;
+                }
             }
+            ViewData["Title"] = "영화 찾기";
+            return View();
+        }
+
+        private static List<string> GetGenreList()
+        {
+            List<string> genres;
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandGenresStr = "SELECT DISTINCT 장르 FROM 장르들 ORDER BY 장르 ASC ";
+                var commandGenres = new SqlCommand(commandGenresStr, connection);
+                connection.Open();
+                using (var reader = commandGenres.ExecuteReader())
+                {
+                    genres = new List<string>();
+                    while (reader.Read())
+                    {
+                        // 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독
+                        string genre = reader[0] is DBNull ? string.Empty : Convert.ToString(reader[0]);
+                        genres.Add(genre);
+                    }
+                }
+            }
+
+            return genres;
+        }
+
+        private static string makeSearchQueryString(Dictionary<string, object> searchFilter, string 금액범위, string 개봉연도범위)
+        {
+            List<string> stringFilter = new List<string> { "제목", "줄거리", "관람제한", "제작사", "감독", "장르" };
+            List<string> intFilter = new List<string> { "금액", "개봉연도" };
+            StringBuilder searchQueryBuilder = new StringBuilder();
+            searchQueryBuilder.Append(searchFilter.ContainsKey("장르")
+                ? "SELECT TOP (10) 영화.영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독,장르 FROM 영화 INNER JOIN 장르들 ON 영화.영화번호 = 장르들.영화번호 "
+                : "SELECT TOP (10) 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독 FROM 영화 ");
+            searchQueryBuilder.Append("WHERE ");
+
+            if (searchFilter.Count == 1)
+            {
+                foreach (var filter in searchFilter)
+                {
+                    if (stringFilter.Contains(filter.Key))
+                    {
+                        if (filter.Key == "관람제한")
+                        {
+                            searchQueryBuilder.Append($"관람제한 = \'{filter.Value}\'");
+                        }
+                        else
+                        {
+                            searchQueryBuilder.Append($"{filter.Key} LIKE \'%{filter.Value}%\'");
+                        }
+                    }
+                    else if (intFilter.Contains(filter.Key))
+                    {
+                        /* 금액이면 금액 {금액범위} {금액}
+                         * 예시 1) "금액 < 10000"
+                         * 예시 2) "개봉연도 > 1980"
+                         */
+                        if (filter.Key == "금액")
+                        {
+                            searchQueryBuilder.Append($"금액 {금액범위} {filter.Value}");
+                        }
+                        else if (filter.Key == "개봉연도")
+                        {
+                            searchQueryBuilder.Append($"개봉연도 {개봉연도범위} {filter.Value}");
+                        }
+                    }
+                }
+
+                searchQueryBuilder.Append(" ");
+            }
+            else
+            {
+                for (int i = 0; i < searchFilter.Count; i++)
+                {
+                    var filter = searchFilter.ElementAt(i);
+                    if (i == 0)
+                    {
+                        if (stringFilter.Contains(filter.Key))
+                        {
+                            if (filter.Key == "관람제한")
+                            {
+                                // 예시) 관람제한 = '12세 이상 관람가' OR 관람제한 = '15세 이상 관람가'
+                                // 로 하지 않을거다.
+                                searchQueryBuilder.Append($"관람제한 = \'{filter.Value}\'");
+                            }
+                            else
+                            {
+                                searchQueryBuilder.Append($"{filter.Key} LIKE \'%{filter.Value}%\'");
+                            }
+                        }
+                        else if (intFilter.Contains(filter.Key))
+                        {
+                            /* 금액이면 금액 {금액범위} {금액}
+                             * 예시 1) "금액 < 10000"
+                             * 예시 2) "개봉연도 > 1980"
+                             */
+                            if (filter.Key == "금액")
+                            {
+                                searchQueryBuilder.Append($"금액 {금액범위} {filter.Value}");
+                            }
+                            else if (filter.Key == "개봉연도")
+                            {
+                                searchQueryBuilder.Append($"개봉연도 {개봉연도범위} {filter.Value}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (stringFilter.Contains(filter.Key))
+                        {
+                            if (filter.Key == "관람제한")
+                            {
+                                searchQueryBuilder.Append($"AND 관람제한 = \'{filter.Value}\'");
+                            }
+                            else
+                            {
+                                searchQueryBuilder.Append($"AND {filter.Key} LIKE \'%{filter.Value}%\'");
+                            }
+                        }
+                        else if (intFilter.Contains(filter.Key))
+                        {
+                            /* 금액이면 금액 {금액범위} {금액}
+                             * 예시 1) "금액 < 10000"
+                             * 예시 2) "개봉연도 > 1980"
+                             */
+                            if (filter.Key == "금액")
+                            {
+                                searchQueryBuilder.Append($"AND 금액 {금액범위} {filter.Value}");
+                            }
+                            else if (filter.Key == "개봉연도")
+                            {
+                                searchQueryBuilder.Append($"AND 개봉연도 {개봉연도범위} {filter.Value}");
+                            }
+                        }
+                    }
+
+                    searchQueryBuilder.Append(" ");
+                }
+            }
+
+            searchQueryBuilder.Append("ORDER BY 개봉연도 DESC");
+
+            return searchQueryBuilder.ToString();
+        }
+
+        public IActionResult NewMovieComment(string content, int userNo, int movieNum, float grade)
+        {
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandNewCommentStr =
+                    $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
+                var command = new SqlCommand(commandNewCommentStr, connection);
+                connection.Open();
+                command.ExecuteReader();
+            }
+
+            return RedirectToAction("AllMovies", "Home");
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
@@ -618,7 +881,7 @@ namespace Cinetube.Controllers
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,구매번호,구매시각,만료일자 FROM 구매내역\r\nINNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
+                    $"DECLARE @NOW DATE\r\nSET @NOW = GETDATE();\r\nDECLARE @USERNUM INT\r\nSET @USERNUM = (SELECT 사용자번호 FROM 사용자 WHERE ID = \'{ID}\')\r\nSELECT 제목,구매번호,구매시각,만료일자,구매내역.영화번호 FROM 구매내역\r\nINNER JOIN 영화 ON 구매내역.영화번호 = 영화.영화번호\r\nWHERE CAST(@NOW AS DATE) <= CAST(만료일자 AS DATE) AND 사용자번호 = @USERNUM";
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
                 using (var reader = command.ExecuteReader())
@@ -631,7 +894,8 @@ namespace Cinetube.Controllers
                         int 구매번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
                         string 구매시각 = reader[2] is DBNull ? String.Empty : Convert.ToString(reader[2]);
                         string 만료일자 = reader[3] is DBNull ? String.Empty : Convert.ToString(reader[3]);
-                        availableMovies.Add(new AvailableMovie(제목, 구매번호, 구매시각, 만료일자));
+                        int 영화번호 = reader[4] is DBNull ? 0 : Convert.ToInt32(reader[4]);
+                        availableMovies.Add(new AvailableMovie(제목, 구매번호, 구매시각, 만료일자, 영화번호));
                         Console.WriteLine($"제목: {제목}, 구매번호: {구매번호}, 구매시각: {구매시각}, 만료일자: {만료일자}");
                     }
 
@@ -783,6 +1047,48 @@ namespace Cinetube.Controllers
 
                 return RedirectToAction(cameFrom, "Home", new { result = "SUCCESS" });
             }
+        }
+
+        [Route("Home/[action]/{movieNo}")]
+        [HttpGet]
+        public IActionResult Movie(int movieNo)
+        {
+            if (!session.Keys.Contains("Loggedin"))
+            {
+                return RedirectToAction("Index", "Home", new { result = "NOTLOGIN" });
+            }
+
+            // 영화파일 이름 가져오기
+            using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr = $"SELECT 영화경로, 제목 FROM 영화 WHERE 영화번호 = {movieNo}";
+                var commandMoviePrice = new SqlCommand(commandStr, connection);
+                connection.Open();
+                using (var reader = commandMoviePrice.ExecuteReader())
+                {
+                    string 파일명 = string.Empty;
+                    string 제목 = string.Empty;
+                    while (reader.Read())
+                    {
+                        파일명 = reader[0] is DBNull ? String.Empty : Convert.ToString(reader[0]);
+                        제목 = reader[1] is DBNull ? String.Empty : Convert.ToString(reader[1]);
+                    }
+
+                    ViewData["Title"] = 제목;
+                    ViewData["FileLink"] = $"https://cinetubecdn.blob.core.windows.net/files/{파일명}";
+                }
+            }
+
+            return View();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private string GetCurrentMethod()
+        {
+            var st = new StackTrace();
+            var sf = st.GetFrame(1);
+
+            return sf.GetMethod().Name;
         }
     }
 }

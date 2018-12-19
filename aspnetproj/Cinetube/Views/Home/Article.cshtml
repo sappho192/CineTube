@@ -1,9 +1,14 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
     int articleNo = (int)ViewData["articleNo"];
     string ID = (string)ViewData["ID"];
     string title = (string)ViewData["title"];
     DateTime writeTime = (DateTime)ViewData["writeTime"];
     string context = (string)ViewData["context"];
+
+    ISession session = HttpContextAccessor.HttpContext.Session;
+    IEnumerable<String> Keys = session.Keys;
 }
 
 <h2>Article</h2>
@@ -15,13 +20,34 @@
     @context
 </div>
 <hr />
-<form method="post" action="/Home/NewSubarticle" id="NewSubarticle" name="NewSubarticle" class="form-inline">
-    <div>
-        <textarea rows="4" cols="50" maxlength="100" id="context" name="context" class="form-control"></textarea>
-        <button type="submit" class="btn btn-default">댓글 작성</button>
-    </div>
-    <input type="number" value="@articleNo" id="articleNo" name="articleNo" hidden />
-</form>
+<!--로그인 확인-->
+@{
+    bool loggedin = false;
+
+    if (Keys.Contains("ID"))
+    {
+        foreach (String key in Keys)
+        {
+            if (key.Equals("Loggedin") && session.GetString(key) == "true")
+            {
+                loggedin = true;
+            }
+        }
+    }
+}
+@{
+    if (loggedin)
+    {
+        <form method="post" asp-controller="Home" asp-action="NewSubarticle" id="NewSubarticle" name="NewSubarticle" class="form-inline">
+            <div>
+                <textarea rows="4" cols="50" maxlength="100" id="context" name="context" class="form-control"></textarea>
+                <button type="submit" class="btn btn-default">댓글 작성</button>
+            </div>
+            <input type="number" value="@articleNo" id="articleNo" name="articleNo" hidden />
+        </form>
+    }
+}
+
 <div class="commentList">
     @foreach (var dt in Model)
     {
