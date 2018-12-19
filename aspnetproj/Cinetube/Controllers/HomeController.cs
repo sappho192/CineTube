@@ -651,20 +651,23 @@ namespace Cinetube.Controllers
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandNewCommentStr1 =
-                    $"select count(*) from 한줄평 where 영화번호={movieNum} and 사용자번호={userNo};";
+                    $"select count(*) as cnt from 한줄평 where 영화번호={movieNum} and 사용자번호={userNo};";
                 var command1 = new SqlCommand(commandNewCommentStr1, connection);
                 connection.Open();
 
-                bool isAlready = false;
+                bool isAlready = true;
                 using (var reader = command1.ExecuteReader())
                 {
-                    if (reader[0] is DBNull)
-                        isAlready = true;
+                    while (reader.Read())
+                    {
+                        if (Convert.ToInt32(reader[0]) == 0)
+                            isAlready = false;
+                    }
                 }
 
                 if (isAlready)
                 {
-                    // 이 경우는 한줄평 못 다는 경우
+                    ViewData["Result"] = "YES_COMMENT";
                 }
                 else
                 {
@@ -672,10 +675,11 @@ namespace Cinetube.Controllers
                         $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
                     var command = new SqlCommand(commandNewCommentStr, connection);
                     command.ExecuteReader();
+
+                    ViewData["Result"] = "NO_COMMENT";
                 }
             }
-
-            return RedirectToAction("AllMovies", "Home");
+            return RedirectToAction2("AllMovies", 0, (string)ViewData["Result"]);
         }
 
         public IActionResult Privacy()
