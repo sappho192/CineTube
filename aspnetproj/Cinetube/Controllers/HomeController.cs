@@ -55,13 +55,13 @@ namespace Cinetube.Controllers
                 ViewData["Balance"] = balance;
             }
 
+            // 최근 영화 긁어오기
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 int index = 0;
                 string commandRecentPageStr =
                     $"SELECT TOP 3 * FROM (SELECT 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독\r\nFROM 영화 WHERE 관람제한 != \'청소년 관람불가\'\r\nORDER BY 영화번호 DESC OFFSET {index}\r\nROWS) AS A";
 
-                // 최근 영화 긁어오기
                 var commandRecentPage = new SqlCommand(commandRecentPageStr, connection);
                 connection.Open();
                 using (var reader = commandRecentPage.ExecuteReader())
@@ -155,12 +155,12 @@ namespace Cinetube.Controllers
                         int 글번호 = reader[2] is DBNull ? 0 : Convert.ToInt32(reader[2]);
                         recentArticles.Add(new RecentArticle(ID, 제목, 글번호));
                     }
-
                     ViewData["RecentArticles"] = recentArticles;
                 }
-
-                return View();
             }
+
+
+            return View();
         }
 
         public IActionResult AllMovies(string result = null)
