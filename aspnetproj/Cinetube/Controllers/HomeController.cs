@@ -762,7 +762,8 @@ namespace Cinetube.Controllers
                     while (reader.Read())
                     {
                         moviePrice = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
-                        moviePrice = isLend == 1 ? moviePrice : moviePrice * 3;
+                        moviePrice = (isLend == 1 ? (moviePrice / 4) : moviePrice);
+                        Console.WriteLine(isLend);
                     }
                 }
             }
@@ -775,7 +776,7 @@ namespace Cinetube.Controllers
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"DECLARE @NUM INT\r\nDECLARE @PRICE INT\r\nDECLARE @USER INT = {userNo}\r\nDECLARE @MOVIE INT = {movieNum}\r\nDECLARE @LIMIT DATE = DATEADD(YEAR, 100, GETDATE())\r\n\r\nSET @NUM = (SELECT count(*) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE)\r\nSET @PRICE = (SELECT 금액 FROM 영화 WHERE 영화번호=@MOVIE)\r\n\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(구매번호) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE) + 1\r\nIF ({isLend} = 1) SET @LIMIT = DATEADD(DAY, 7, GETDATE())\r\nELSE SET @PRICE = @PRICE * 3\r\nINSERT INTO 구매내역 VALUES(@USER, @MOVIE, @NUM, GETDATE(), @LIMIT)\r\n\r\nUPDATE 회원\r\nSET 보유금액 -= @PRICE\r\nWHERE 사용자번호 = @USER";
+                    $"DECLARE @NUM INT\r\nDECLARE @USER INT = {userNo}\r\nDECLARE @MOVIE INT = {movieNum}\r\nDECLARE @LIMIT DATE = DATEADD(YEAR, 100, GETDATE())\r\n\r\nSET @NUM = (SELECT count(*) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE)\r\nIF (@NUM != 0) SET @NUM = (SELECT MAX(구매번호) FROM 구매내역 WHERE 사용자번호=@USER and 영화번호=@MOVIE) + 1\r\nIF ({isLend} = 1) SET @LIMIT = DATEADD(DAY, 7, GETDATE())\r\nINSERT INTO 구매내역 VALUES(@USER, @MOVIE, @NUM, GETDATE(), @LIMIT)\r\n\r\nUPDATE 회원\r\nSET 보유금액 -= {moviePrice}\r\nWHERE 사용자번호 = @USER";
                 var command = new SqlCommand(commandStr, connection);
                 connection.Open();
                 var result = command.ExecuteNonQuery();
