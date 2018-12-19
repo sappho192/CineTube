@@ -650,11 +650,29 @@ namespace Cinetube.Controllers
         {
             using (var connection = new SqlConnection(GlobalVariables.connectionUrl))
             {
-                string commandNewCommentStr =
-                    $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
-                var command = new SqlCommand(commandNewCommentStr, connection);
+                string commandNewCommentStr1 =
+                    $"select count(*) from 한줄평 where 영화번호={movieNum} and 사용자번호={userNo};";
+                var command1 = new SqlCommand(commandNewCommentStr1, connection);
                 connection.Open();
-                command.ExecuteReader();
+
+                bool isAlready = false;
+                using (var reader = command1.ExecuteReader())
+                {
+                    if (reader[0] is DBNull)
+                        isAlready = true;
+                }
+
+                if (isAlready)
+                {
+                    // 이 경우는 한줄평 못 다는 경우
+                }
+                else
+                {
+                    string commandNewCommentStr =
+                        $"INSERT INTO 한줄평 VALUES({movieNum}, {userNo}, \'{content}\', {grade}, GETDATE())";
+                    var command = new SqlCommand(commandNewCommentStr, connection);
+                    command.ExecuteReader();
+                }
             }
 
             return RedirectToAction("AllMovies", "Home");
