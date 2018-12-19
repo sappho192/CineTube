@@ -282,7 +282,8 @@
                             //e.preventDefault();
 
                             // Get the form instance
-                            var $form = $(e.target);
+                            var $form = $('#signUpForm');
+                            console.log($form);
 
                             // Get the BootstrapValidator instance
                             var bv = $form.data('bootstrapValidator');
@@ -291,6 +292,8 @@
                             $.post($form.attr('action'), $form.serialize(), function (result) {
                                 console.log(result);
                             }, 'json');
+
+                            $('#signUpModal').modal('toggle');
                         });
                 });
             </script>
