@@ -92,7 +92,7 @@ namespace Cinetube.Controllers
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(영화번호, 한줄평들);
 
-                        List<string> 배우들 = new List<string>();
+                        List<ActorInfo> 배우들 = new List<ActorInfo>();
                         GetActors(영화번호, 배우들);
 
                         recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
@@ -159,7 +159,7 @@ namespace Cinetube.Controllers
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(영화번호, 한줄평들);
 
-                        List<string> 배우들 = new List<string>();
+                        List<ActorInfo> 배우들 = new List<ActorInfo>();
                         GetActors(영화번호, 배우들);
 
                         popularMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
@@ -175,12 +175,12 @@ namespace Cinetube.Controllers
             return View();
         }
 
-        private static void GetActors(int 영화번호, List<string> 배우들)
+        private static void GetActors(int 영화번호, List<ActorInfo> 배우들)
         {
             using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandStr =
-                    $"SELECT 이름 FROM 출연 INNER JOIN 배우 ON 출연.배우번호 = 배우.배우번호 WHERE 영화번호 = {영화번호}";
+                    $"SELECT 이름, 출연.배우번호 FROM 출연 INNER JOIN 배우 ON 출연.배우번호 = 배우.배우번호 WHERE 영화번호 = {영화번호}";
                 var command = new SqlCommand(commandStr, commentConnection);
                 commentConnection.Open();
                 using (var reader = command.ExecuteReader())
@@ -188,10 +188,11 @@ namespace Cinetube.Controllers
                     //사용자번호,ID,한줄평내용,평점,작성시각
                     while (reader.Read())
                     {
-                        string 배우 = reader[0] is DBNull
+                        string 이름 = reader[0] is DBNull
                             ? string.Empty
                             : Convert.ToString(reader[0]);
-                        배우들.Add(배우);
+                        int 배우번호 = reader[1] is DBNull ? 0 : Convert.ToInt32(reader[1]);
+                        배우들.Add(new ActorInfo(이름, 배우번호));
                     }
                 }
             }
@@ -313,7 +314,7 @@ namespace Cinetube.Controllers
                         List<string> 장르들 = new List<string>();
                         GetGenres(영화번호, 장르들);
 
-                        List<string> 배우들 = new List<string>();
+                        List<ActorInfo> 배우들 = new List<ActorInfo>();
                         GetActors(영화번호, 배우들);
 
                         // 해당 영화의 한줄평 긁어오기
@@ -333,7 +334,7 @@ namespace Cinetube.Controllers
 
         [HttpPost]
         public IActionResult AllMovies(string 금액, string 금액범위, string 개봉연도, string 개봉연도범위,
-            string 제목, string 줄거리, string 관람제한, string 제작사, string 감독, string 장르, string result = null)
+            string 제목, string 줄거리, string 관람제한, string 제작사, string 감독, string 장르, string 배우, string result = null)
         {
             if (result != null)
             {
@@ -381,6 +382,7 @@ namespace Cinetube.Controllers
             if (제작사 != null) { searchFilter.Add(nameof(제작사), 제작사); }
             if (감독 != null) { searchFilter.Add(nameof(감독), 감독); }
             if (장르 != null) { searchFilter.Add(nameof(장르), 장르); }
+            if (배우 != null) { searchFilter.Add(nameof(배우), 배우); }
             if (searchFilter.Count == 0)
             {
                 return RedirectToAction("AllMovies", "Home");
@@ -419,12 +421,13 @@ namespace Cinetube.Controllers
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(_영화번호, 한줄평들);
 
-                        List<string> 배우들 = new List<string>();
+                        List<ActorInfo> 배우들 = new List<ActorInfo>();
                         GetActors(_영화번호, 배우들);
 
                         moviesInfo.Add(new MovieInfo(_영화번호, _제목, _금액, _예고편경로, _영화경로, _개봉연도, _줄거리, _관람제한, _영화시간, _제작사, _감독, 장르들, 한줄평들, 배우들));
                     }
 
+                    if(moviesInfo.Count == 0) {ViewData["Result"] = "0SEARCH";}
                     ViewData["MoviesInfo"] = moviesInfo;
                 }
             }
@@ -458,30 +461,49 @@ namespace Cinetube.Controllers
 
         private static string makeSearchQueryString(Dictionary<string, object> searchFilter, string 금액범위, string 개봉연도범위)
         {
-            List<string> stringFilter = new List<string> { "제목", "줄거리", "관람제한", "제작사", "감독", "장르" };
-            List<string> intFilter = new List<string> { "금액", "개봉연도" };
             StringBuilder searchQueryBuilder = new StringBuilder();
-            searchQueryBuilder.Append(searchFilter.ContainsKey("장르")
-                ? "SELECT TOP (10) 영화.영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독,장르 FROM 영화 INNER JOIN 장르들 ON 영화.영화번호 = 장르들.영화번호 "
-                : "SELECT TOP (10) 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독 FROM 영화 ");
+            
+            if (searchFilter.ContainsKey("장르"))
+            {
+                searchQueryBuilder.Append("SELECT TOP (10) 영화.영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독 FROM 영화 ");
+                searchQueryBuilder.Append("INNER JOIN 장르들 ON 영화.영화번호 = 장르들.영화번호 ");
+            }
+            else if (searchFilter.ContainsKey("배우"))
+            {
+                searchQueryBuilder.Append("SELECT TOP (10) 영화.영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독 FROM 영화 ");
+                searchQueryBuilder.Append("INNER JOIN 출연 ON 영화.영화번호 = 출연.영화번호 ");
+            }
+            else
+            {
+                searchQueryBuilder.Append("SELECT TOP (10) 영화번호,제목,금액,예고편경로,영화경로,개봉연도,줄거리,관람제한,영화시간,제작사,감독 FROM 영화 ");
+            }
             searchQueryBuilder.Append("WHERE ");
 
             if (searchFilter.Count == 1)
             {
                 foreach (var filter in searchFilter)
                 {
-                    if (stringFilter.Contains(filter.Key))
+                    if (GlobalVariables.StringFilter.Contains(filter.Key))
                     {
                         if (filter.Key == "관람제한")
                         {
                             searchQueryBuilder.Append($"관람제한 = \'{filter.Value}\'");
+                        } else if (filter.Key == "배우")
+                        {
+                            List<ActorInfo> actorList = GetSameNameActors(filter.Value as string);
+                            for (int i = 0; i < actorList.Count; i++)
+                            {
+                                searchQueryBuilder.Append(i == 0
+                                    ? $" 배우번호 = {actorList[i].배우번호} "
+                                    : $" OR 배우번호 = {actorList[i].배우번호} ");
+                            }
                         }
                         else
                         {
                             searchQueryBuilder.Append($"{filter.Key} LIKE \'%{filter.Value}%\'");
                         }
                     }
-                    else if (intFilter.Contains(filter.Key))
+                    else if (GlobalVariables.IntFilter.Contains(filter.Key))
                     {
                         /* 금액이면 금액 {금액범위} {금액}
                          * 예시 1) "금액 < 10000"
@@ -507,7 +529,7 @@ namespace Cinetube.Controllers
                     var filter = searchFilter.ElementAt(i);
                     if (i == 0)
                     {
-                        if (stringFilter.Contains(filter.Key))
+                        if (GlobalVariables.StringFilter.Contains(filter.Key))
                         {
                             if (filter.Key == "관람제한")
                             {
@@ -515,12 +537,24 @@ namespace Cinetube.Controllers
                                 // 로 하지 않을거다.
                                 searchQueryBuilder.Append($"관람제한 = \'{filter.Value}\'");
                             }
+                            else if (filter.Key == "배우")
+                            {
+                                List<ActorInfo> actorList = GetSameNameActors(filter.Value as string);
+                                for (int j = 0; j < actorList.Count; j++)
+                                {
+                                    searchQueryBuilder.Append(j == 0
+                                        ? $" AND (배우번호 = {actorList[i].배우번호} "
+                                        : $" OR 배우번호 = {actorList[i].배우번호} ");
+                                }
+
+                                searchQueryBuilder.Append(")");
+                            }
                             else
                             {
                                 searchQueryBuilder.Append($"{filter.Key} LIKE \'%{filter.Value}%\'");
                             }
                         }
-                        else if (intFilter.Contains(filter.Key))
+                        else if (GlobalVariables.IntFilter.Contains(filter.Key))
                         {
                             /* 금액이면 금액 {금액범위} {금액}
                              * 예시 1) "금액 < 10000"
@@ -538,18 +572,30 @@ namespace Cinetube.Controllers
                     }
                     else
                     {
-                        if (stringFilter.Contains(filter.Key))
+                        if (GlobalVariables.StringFilter.Contains(filter.Key))
                         {
                             if (filter.Key == "관람제한")
                             {
                                 searchQueryBuilder.Append($"AND 관람제한 = \'{filter.Value}\'");
+                            }
+                            else if (filter.Key == "배우")
+                            {
+                                List<ActorInfo> actorList = GetSameNameActors(filter.Value as string);
+                                for (int j = 0; j < actorList.Count; j++)
+                                {
+                                    searchQueryBuilder.Append(j == 0
+                                        ? $" AND (배우번호 = {actorList[i].배우번호} "
+                                        : $" OR 배우번호 = {actorList[i].배우번호} ");
+                                }
+
+                                searchQueryBuilder.Append(")");
                             }
                             else
                             {
                                 searchQueryBuilder.Append($"AND {filter.Key} LIKE \'%{filter.Value}%\'");
                             }
                         }
-                        else if (intFilter.Contains(filter.Key))
+                        else if (GlobalVariables.IntFilter.Contains(filter.Key))
                         {
                             /* 금액이면 금액 {금액범위} {금액}
                              * 예시 1) "금액 < 10000"
@@ -573,6 +619,32 @@ namespace Cinetube.Controllers
             searchQueryBuilder.Append("ORDER BY 개봉연도 DESC");
 
             return searchQueryBuilder.ToString();
+        }
+
+        private static List<ActorInfo> GetSameNameActors(string name)
+        {
+            List<ActorInfo> 배우들 = new List<ActorInfo>();
+            using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"SELECT 배우번호,이름 FROM 배우 WHERE 이름 = \'{name}\'";
+                var command = new SqlCommand(commandStr, commentConnection);
+                commentConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    //사용자번호,ID,한줄평내용,평점,작성시각
+                    while (reader.Read())
+                    {
+                        int 배우번호 = reader[0] is DBNull ? 0 : Convert.ToInt32(reader[0]);
+                        string 이름 = reader[1] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(reader[1]);
+                        배우들.Add(new ActorInfo(이름, 배우번호));
+                    }
+                }
+            }
+
+            return 배우들;
         }
 
         public IActionResult NewMovieComment(string content, int userNo, int movieNum, float grade)

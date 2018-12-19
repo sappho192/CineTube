@@ -134,9 +134,9 @@
                                                             else
                                                             {
                                                                 <span>출연:</span>
-                                                                foreach (string 배우 in movieInfo.배우)
+                                                                foreach (var 배우 in movieInfo.배우)
                                                                 {
-                                                                <span>@배우 </span>
+                                                                <span>@배우.이름 </span>
                                                                 }
                                                             }
                                                         }
@@ -323,9 +323,9 @@
                                                             else
                                                             {
                                                                 <span>출연:</span>
-                                                                foreach (string 배우 in movieInfo.배우)
+                                                                foreach (var 배우 in movieInfo.배우)
                                                                 {
-                                                                    <span>@배우 </span>
+                                                                    <span>@배우.이름 </span>
                                                                 }
                                                             }
                                                         }

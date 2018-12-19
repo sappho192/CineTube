@@ -49,23 +49,26 @@
                 <strong>비밀번호가 틀렸습니다.</strong>
             </div>
         }
+        else if (ViewData["Result"].Equals("0SEARCH"))
+        {
+            <div class="alert alert-info alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>검색 결과가 없습니다.</strong>
+            </div>
+        }
     }
 }
 <div class="page-header">
     <h1>@ViewData["Title"]</h1>
 </div>
-<p>
-    필터에 맞게 검색해주는 기능 필요<br />
-    pagination 구현 필요<br />
-</p>
-
+<!--pagination 구현 필요-->
 <div class="panel panel-info">
     <div class="panel-heading"><h3>세부 검색</h3></div>
     <div class="panel-body">
         <div class="well" name="search-filter">
             <form asp-controller="Home" asp-action="AllMovies" method="post">
                 <div class="row">
-                    <div class="col-xs-4">
+                    <div class="col-xs-6">
                         <div class="form-group">
                             <label for="금액">금액: </label>
                             <div class="input-group">
@@ -80,7 +83,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xs-4">
+                    <div class="col-xs-6">
                         <div class="form-group">
                             <label for="개봉연도">개봉연도: </label>
                             <div class="input-group">
@@ -96,27 +99,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xs-4">
+
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
                         <div class="form-group">
-                            <label for="장르목록">장르: </label>
+                            <label for="배우">배우: </label>
                             <div class="input-group">
-                                <input list="장르목록" class="form-control" id="장르" name="장르">
-                                <datalist id="장르목록">
-                                    @{
-                                        System.Diagnostics.Debug.Assert(genreList != null, nameof(genreList) + " != null");
-                                        foreach (string genre in genreList)
-                                        {
-                                            <option value="@genre"/>
-                                        }
-                                    }
-                                    
-                                </datalist>
+                                <input type="text" class="form-control" id="배우" name="배우">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-xs-12">
+                    <div class="col-xs-6">
                         <div class="form-group">
                             <label for="관람제한">관람제한: </label>
                             <div class="input-group">
@@ -128,6 +124,24 @@
                                     <option value="제한상영가">제한상영가</option>
                                     <option value="청소년 관람불가">청소년 관람불가</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="form-group">
+                            <label for="장르목록">장르: </label>
+                            <div class="input-group">
+                                <input list="장르목록" class="form-control" id="장르" name="장르">
+                                <datalist id="장르목록">
+                                    @{
+                                        System.Diagnostics.Debug.Assert(genreList != null, nameof(genreList) + " != null");
+                                        foreach (string genre in genreList)
+                                        {
+                                            <option value="@genre" />
+                                        }
+                                    }
+
+                                </datalist>
                             </div>
                         </div>
                     </div>
@@ -251,9 +265,9 @@
                                                                 else
                                                                 {
                                                                     <span>출연:</span>
-                                                                    foreach (string 배우 in movieInfo.배우)
+                                                                    foreach (var 배우 in movieInfo.배우)
                                                                     {
-                                                                        <span>@배우 </span>
+                                                                        <span>@배우.이름 </span>
                                                                     }
                                                                 }
                                                             }

@@ -40,5 +40,8 @@ namespace Cinetube.Models
         public static List<string> PwHintList = getHintList();
 
         public static readonly Regex PhoneRegex = new Regex(@"\d{11}");
+
+        public static readonly List<string> StringFilter = new List<string> { "제목", "줄거리", "관람제한", "제작사", "감독", "장르", "배우" };
+        public static readonly List<string> IntFilter = new List<string> { "금액", "개봉연도" };
     }
 }
