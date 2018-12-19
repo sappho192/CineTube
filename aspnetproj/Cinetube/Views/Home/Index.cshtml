@@ -99,7 +99,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <ul>
-                                        <li>줄거리<br />@movieInfo.줄거리</li>
+                                        <li><label>줄거리</label><br />@movieInfo.줄거리</li>
                                         <li>
                                             <label>예고편</label><br />
                                             <div class="well">
@@ -123,6 +123,24 @@
                                                     <th style="text-align: center">@movieInfo.개봉연도 년</th>
                                                     <th style="text-align: center">@movieInfo.감독 감독</th>
                                                     <th style="text-align: center">@movieInfo.제작사 제작</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="text-align: center" colspan="4">
+                                                        @{
+                                                            if (movieInfo.배우.Count == 0)
+                                                            {
+                                                                <span>출연 배우 정보 없음</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>출연:</span>
+                                                                foreach (string 배우 in movieInfo.배우)
+                                                                {
+                                                                <span>@배우 </span>
+                                                                }
+                                                            }
+                                                        }
+                                                    </th>
                                                 </tr>
                                             </table>
                                         </li>
@@ -271,7 +289,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <ul>
-                                        <li>줄거리<br/>@movieInfo.줄거리</li>
+                                        <li><label>줄거리</label><br />@movieInfo.줄거리</li>
                                         <li><label>예고편</label><br/>
                                             <div class="well">
                                                 @{
@@ -294,6 +312,24 @@
                                                     <th style="text-align: center">@movieInfo.개봉연도 년</th>
                                                     <th style="text-align: center">@movieInfo.감독 감독</th>
                                                     <th style="text-align: center">@movieInfo.제작사 제작</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="text-align: center" colspan="4">
+                                                        @{
+                                                            if (movieInfo.배우.Count == 0)
+                                                            {
+                                                                <span>출연 배우 정보 없음</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>출연:</span>
+                                                                foreach (string 배우 in movieInfo.배우)
+                                                                {
+                                                                    <span>@배우 </span>
+                                                                }
+                                                            }
+                                                        }
+                                                    </th>
                                                 </tr>
                                             </table>
                                         </li>

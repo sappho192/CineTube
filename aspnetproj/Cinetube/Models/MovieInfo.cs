@@ -5,7 +5,8 @@ namespace Cinetube.Models
     public class MovieInfo
     {
         public MovieInfo(int movienum, string title, int price, string previewuri, string movieuri, int openyear,
-            string story, string agelimit, int duration, string company, string director, List<string> genres, List<MovieComment> comments)
+            string story, string agelimit, int duration, string company, string director,
+            List<string> genres, List<MovieComment> comments, List<string> actors)
         {
             영화번호 = movienum;
             제목 = title;
@@ -20,6 +21,7 @@ namespace Cinetube.Models
             감독 = director;
             장르 = genres;
             한줄평 = comments;
+            배우 = actors;
         }
         public int 영화번호 { get; }
         public string 제목 { get; }
@@ -34,5 +36,6 @@ namespace Cinetube.Models
         public string 감독 { get; }
         public List<string> 장르 { get; }
         public List<MovieComment> 한줄평 { get; }
+        public List<string> 배우 { get; }
     }
 }

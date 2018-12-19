@@ -92,8 +92,11 @@ namespace Cinetube.Controllers
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(영화번호, 한줄평들);
 
+                        List<string> 배우들 = new List<string>();
+                        GetActors(영화번호, 배우들);
+
                         recentMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
-                            장르들, 한줄평들));
+                            장르들, 한줄평들, 배우들));
                     }
 
                     ViewData["RecentMoviesInfo"] = recentMoviesInfo;
@@ -156,8 +159,11 @@ namespace Cinetube.Controllers
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(영화번호, 한줄평들);
 
+                        List<string> 배우들 = new List<string>();
+                        GetActors(영화번호, 배우들);
+
                         popularMoviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독,
-                            장르들, 한줄평들));
+                            장르들, 한줄평들, 배우들));
                     }
 
                     ViewData["PopularMoviesInfo"] = popularMoviesInfo;
@@ -169,12 +175,34 @@ namespace Cinetube.Controllers
             return View();
         }
 
+        private static void GetActors(int 영화번호, List<string> 배우들)
+        {
+            using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
+            {
+                string commandStr =
+                    $"SELECT 이름 FROM 출연 INNER JOIN 배우 ON 출연.배우번호 = 배우.배우번호 WHERE 영화번호 = {영화번호}";
+                var command = new SqlCommand(commandStr, commentConnection);
+                commentConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    //사용자번호,ID,한줄평내용,평점,작성시각
+                    while (reader.Read())
+                    {
+                        string 배우 = reader[0] is DBNull
+                            ? string.Empty
+                            : Convert.ToString(reader[0]);
+                        배우들.Add(배우);
+                    }
+                }
+            }
+        }
+
         private static void GetMovieComments(int 영화번호, List<MovieComment> 한줄평들)
         {
             using (var commentConnection = new SqlConnection(GlobalVariables.connectionUrl))
             {
                 string commandMovieCommentStr =
-                    $"SELECT 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
+                    $"SELECT TOP(7) 한줄평.사용자번호,ID,한줄평내용,평점,작성시각 FROM 한줄평\r\nINNER JOIN 사용자 ON 한줄평.사용자번호 = 사용자.사용자번호\r\nWHERE 영화번호 = {영화번호}";
                 var commandMovieComment = new SqlCommand(commandMovieCommentStr, commentConnection);
                 commentConnection.Open();
                 using (var commentReader = commandMovieComment.ExecuteReader())
@@ -285,10 +313,13 @@ namespace Cinetube.Controllers
                         List<string> 장르들 = new List<string>();
                         GetGenres(영화번호, 장르들);
 
+                        List<string> 배우들 = new List<string>();
+                        GetActors(영화번호, 배우들);
+
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(영화번호, 한줄평들);
-                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들, 한줄평들));
+                        moviesInfo.Add(new MovieInfo(영화번호, 제목, 금액, 예고편경로, 영화경로, 개봉연도, 줄거리, 관람제한, 영화시간, 제작사, 감독, 장르들, 한줄평들, 배우들));
                     }
 
                     ViewData["MoviesInfo"] = moviesInfo;
@@ -387,7 +418,11 @@ namespace Cinetube.Controllers
                         // 해당 영화의 한줄평 긁어오기
                         List<MovieComment> 한줄평들 = new List<MovieComment>();
                         GetMovieComments(_영화번호, 한줄평들);
-                        moviesInfo.Add(new MovieInfo(_영화번호, _제목, _금액, _예고편경로, _영화경로, _개봉연도, _줄거리, _관람제한, _영화시간, _제작사, _감독, 장르들, 한줄평들));
+
+                        List<string> 배우들 = new List<string>();
+                        GetActors(_영화번호, 배우들);
+
+                        moviesInfo.Add(new MovieInfo(_영화번호, _제목, _금액, _예고편경로, _영화경로, _개봉연도, _줄거리, _관람제한, _영화시간, _제작사, _감독, 장르들, 한줄평들, 배우들));
                     }
 
                     ViewData["MoviesInfo"] = moviesInfo;
