@@ -1,0 +1,11 @@
+﻿@{
+    string movieLink = ViewData["FileLink"] as string;
+}
+<div class="page-header">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<div class="well">
+    <video controls="controls" src="@movieLink" style="width:100%">
+        Your browser does not support the HTML5 Video element.
+    </video>
+</div>
