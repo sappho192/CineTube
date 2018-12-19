@@ -364,8 +364,10 @@
                                             <div class="modal-body">
                                                 <div><h5>최근 한줄평</h5></div>
                                                 @{
+                                                    float average = 0;
                                                     foreach (var comment in movieInfo.한줄평)
                                                     {
+                                                        average += comment.평점;
                                                         string panelType = string.Empty;
                                                         if (comment.평점 >= 4.0)
                                                         {
@@ -388,7 +390,9 @@
                                                             <div class="panel-body"><strong>@@@comment.아이디:</strong> @comment.내용</div>
                                                         </div>
                                                     }
+                                                    average /= movieInfo.한줄평.Count;
                                                 }
+                                                <div><h4>평점: @Math.Round(average, 2)</h4></div>
                                             </div>
                                         }
                                     }
