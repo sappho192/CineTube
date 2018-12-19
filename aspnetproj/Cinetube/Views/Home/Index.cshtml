@@ -40,7 +40,7 @@
 }
 <div class="page-header"><h1>@ViewData["Title"]</h1></div>
 <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <h2>최신 영화</h2>
         @{
             const int MAX_LENGTH = 200;
@@ -213,7 +213,7 @@
             }
         }
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <h2>인기 영화</h2>
         @{
             System.Diagnostics.Debug.Assert(popularMoviesInfo != null, nameof(popularMoviesInfo) + " != null");
@@ -384,7 +384,7 @@
             }
         }
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <h2>자유게시판</h2>
         @{
             System.Diagnostics.Debug.Assert(recentArticles != null, nameof(recentArticles) + " != null");
