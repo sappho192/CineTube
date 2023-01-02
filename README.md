@@ -1,6 +1,8 @@
 # CineTube
 
 ![MainPage](./image/image.png)
+
+
 [[Term project report.pdf](report.pdf)]
 
 # 동작 환경
